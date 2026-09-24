@@ -1,0 +1,108 @@
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: 'Noto Sans', 'Noto Sans Devanagari', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+
+  --color-navy-950: #071528;
+  --color-navy-900: #0b1f3a;
+  --color-navy-800: #12294d;
+  --color-navy-700: #1b3a6b;
+  --color-navy-600: #24508f;
+  --color-navy-500: #3e7bd1;
+  --color-navy-100: #dbe6f5;
+  --color-navy-50: #eef3fa;
+
+  --color-saffron-700: #974d00;
+  --color-saffron-600: #b35c00;
+  --color-saffron-500: #e07b00;
+  --color-saffron-400: #e8a33d;
+  --color-saffron-50: #fdf3e6;
+
+  --color-surface: #f6f8fb;
+  --color-line: #e3e8ef;
+
+  --color-blocking: #b42318;
+  --color-blocking-bg: #fef3f2;
+  --color-warning: #b54708;
+  --color-warning-bg: #fffaeb;
+  --color-info: #175cd3;
+  --color-info-bg: #eff8ff;
+  --color-success: #067647;
+  --color-success-bg: #ecfdf3;
+
+  --color-st-provisional: #667085;
+  --color-st-verified: #175cd3;
+  --color-st-approved: #0e7490;
+  --color-st-registered: #067647;
+
+  --color-lc-exclusive: #0072b2;
+  --color-lc-limited: #e69f00;
+  --color-lc-common: #009e73;
+  --color-lc-parking: #cc79a7;
+  --color-lc-underground: #d55e00;
+  --color-lc-elevated: #56b4e9;
+  --color-lc-building: #8a94a6;
+  --color-lc-surface: #b8c1cf;
+
+  --color-tier-a: #067647;
+  --color-tier-b: #175cd3;
+  --color-tier-c: #b54708;
+  --color-tier-d: #98a2b3;
+}
+
+html {
+  font-size: 15px;
+}
+
+html[data-large-font='true'] {
+  font-size: 18px;
+}
+
+body {
+  margin: 0;
+  background: var(--color-surface);
+  color: #101828;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-saffron-500);
+  outline-offset: 2px;
+}
+
+@keyframes progress {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(260%);
+  }
+}
+
+.cesium-widget-credits {
+  display: none !important;
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: white;
+  }
+  body * {
+    visibility: hidden;
+  }
+  .print-area,
+  .print-area * {
+    visibility: visible;
+  }
+  .print-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+}
