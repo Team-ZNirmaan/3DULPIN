@@ -148,27 +148,6 @@ export interface ValidationIssue {
   fixable: boolean
 }
 
-export interface QcCheck {
-  name: string
-  value: string
-  threshold: string
-  pass: boolean
-}
-
-export interface Dataset {
-  id: string
-  name: string
-  kind: 'drone' | 'control' | 'photogrammetry' | 'cadastre' | 'plan' | 'rera' | 'deeds' | 'utility' | 'infra' | 'screening'
-  source: string
-  captured: string
-  crs: string
-  accuracy: string
-  licence: string
-  size: string
-  reliance: 'core' | 'supporting' | 'optional'
-  qc: QcCheck[]
-}
-
 export interface PipelineStage {
   id: string
   label: string
@@ -188,16 +167,6 @@ export interface AuditEvent {
   details: string
   prevHash: string
   hash: string
-}
-
-export interface VerificationTask {
-  id: string
-  unitCode: string
-  reason: 'sample' | 'flag'
-  issueId?: string
-  status: 'pending' | 'passed' | 'failed'
-  expectedAreaSqm?: number
-  measuredAreaSqm?: number
 }
 
 export interface FloorEvidence {

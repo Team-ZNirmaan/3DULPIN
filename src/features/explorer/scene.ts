@@ -25,9 +25,9 @@ import {
   defined,
 } from 'cesium'
 import 'cesium/Build/Cesium/Widgets/widgets.css'
-import { CLASS_COLOR, SEVERITY_COLOR, STATUS_COLOR, TIER_COLOR, classOf } from '@/domain/display'
+import { CLASS_COLOR, STATUS_COLOR, classOf } from '@/domain/display'
 import { ringCentroid, toLocal, toLonLat } from '@/domain/geo'
-import type { Parcel, Severity, SpatialUnit, ValidationIssue } from '@/domain/types'
+import type { Parcel, SpatialUnit } from '@/domain/types'
 import type { ColorMode, LayerState, LevelMode } from '@/store/explorer'
 import { BASEMAP_EXTENT_M, drawBasemap } from './basemap'
 
@@ -38,7 +38,6 @@ export interface StyleState {
   layers: LayerState
   underground: boolean
   selectedCode?: string
-  issueByCode: Map<string, Severity>
 }
 
 export interface PickInfo {
@@ -83,7 +82,6 @@ export class ExplorerScene {
   private units = new Map<string, UnitEntry>()
   private parcelEntities: Entity[] = []
   private labelEntities: Entity[] = []
-  private issueEntities: Entity[] = []
   private handler: ScreenSpaceEventHandler
   private queryMode = false
   private pilotCenter = Cartesian3.fromDegrees(0, 0)
@@ -137,13 +135,12 @@ export class ExplorerScene {
     this.viewer.scene.light = new DirectionalLight({ direction: Cartesian3.normalize(dir, dir), intensity: 2.2 })
   }
 
-  build(units: SpatialUnit[], parcels: Parcel[], issues: ValidationIssue[]) {
+  build(units: SpatialUnit[], parcels: Parcel[]) {
     const { entities } = this.viewer
     entities.removeAll()
     this.units.clear()
     this.parcelEntities = []
     this.labelEntities = []
-    this.issueEntities = []
 
     for (const p of parcels) {
       const e = entities.add({
@@ -258,61 +255,31 @@ export class ExplorerScene {
       this.units.set(u.code, { unit: u, entity, kind, extras })
     }
 
-    for (const i of issues) {
-      this.issueEntities.push(
-        entities.add({
-          id: `issue:${i.id}`,
-          position: Cartesian3.fromDegrees(i.focus.lon, i.focus.lat, i.focus.height),
-          point: {
-            pixelSize: 13,
-            color: Color.fromCssColorString(SEVERITY_COLOR[i.severity]),
-            outlineColor: Color.WHITE,
-            outlineWidth: 2.5,
-            disableDepthTestDistance: Number.POSITIVE_INFINITY,
-          },
-          label: {
-            text: i.id.replace('ISS-', '#'),
-            font: '700 11px "Noto Sans", sans-serif',
-            fillColor: Color.WHITE,
-            showBackground: true,
-            backgroundColor: Color.fromCssColorString(SEVERITY_COLOR[i.severity]),
-            backgroundPadding: new Cartesian2(5, 3),
-            pixelOffset: new Cartesian2(0, -18),
-            disableDepthTestDistance: Number.POSITIVE_INFINITY,
-          },
-        }),
-      )
-    }
     this.setLight()
     this.viewer.scene.requestRender()
   }
 
   private baseColor(u: SpatialUnit, s: StyleState): Color {
-    if (s.colorMode === 'class') return Color.fromCssColorString(CLASS_COLOR[classOf(u)])
-    if (s.colorMode === 'tier') return Color.fromCssColorString(TIER_COLOR[u.tier])
-    if (s.colorMode === 'status') return Color.fromCssColorString(STATUS_COLOR[u.status])
-    const sev = s.issueByCode.get(u.code)
-    return sev ? Color.fromCssColorString(SEVERITY_COLOR[sev]) : Color.fromCssColorString('#C8CED8')
+    return Color.fromCssColorString(s.colorMode === 'status' ? STATUS_COLOR[u.status] : CLASS_COLOR[classOf(u)])
   }
 
   private levelVisible(u: SpatialUnit, s: StyleState): boolean {
     if (s.levelMode === 'all' || !u.level) return true
     const a = LEVEL_ORDER.indexOf(u.level)
     const b = LEVEL_ORDER.indexOf(s.level)
-    return s.levelMode === 'only' ? a === b : a <= b
+    return a === b
   }
 
   applyStyle(s: StyleState) {
     for (const { unit: u, entity, kind, extras } of this.units.values()) {
-      const layerOn =
-        kind === 'pilot' ? s.layers.pilot : kind === 'context' ? s.layers.context : kind === 'underground' ? s.layers.underground : s.layers.elevated
+      const layerOn = kind === 'context' ? s.layers.context : kind === 'underground' ? s.layers.underground : true
       const selected = s.selectedCode === u.code
       const inLevel = kind !== 'pilot' || this.levelVisible(u, s)
       const underground = kind === 'underground' || u.zMax <= 0
       entity.show = layerOn && (!underground || s.underground || kind === 'pilot')
 
-      let color = kind === 'context' && s.colorMode === 'class' ? Color.fromCssColorString('#D3D8E0') : this.baseColor(u, s)
-      let alpha = kind === 'context' ? 1 : u.type === 'C' ? 0.5 : kind === 'underground' ? 0.95 : 0.88
+      let color = kind === 'context' ? Color.fromCssColorString('#DDE2E9') : this.baseColor(u, s)
+      let alpha = kind === 'context' ? 1 : u.type === 'C' ? 0.38 : kind === 'underground' ? 0.95 : 0.9
       if (s.underground && kind === 'context') alpha = 0.3
       if (s.underground && kind === 'pilot' && u.zMin >= 0) alpha = Math.min(alpha, 0.16)
       if (!inLevel) alpha = 0.05
@@ -322,7 +289,7 @@ export class ExplorerScene {
       }
       const mat = new ColorMaterialProperty(color.withAlpha(alpha))
       const outline = new ConstantProperty(
-        selected ? Color.WHITE : kind === 'context' ? Color.fromCssColorString('#98A2B3').withAlpha(0.8) : Color.WHITE.withAlpha(inLevel ? 0.75 : 0.08),
+        selected ? Color.WHITE : kind === 'context' ? Color.fromCssColorString('#AEB6C2').withAlpha(0.6) : Color.WHITE.withAlpha(inLevel ? 0.6 : 0.06),
       )
       if (entity.polygon) {
         entity.polygon.material = mat
@@ -338,8 +305,7 @@ export class ExplorerScene {
       }
     }
     for (const e of this.parcelEntities) e.show = s.layers.parcels
-    for (const e of this.labelEntities) e.show = s.layers.labels && s.layers.parcels
-    for (const e of this.issueEntities) e.show = s.layers.issues
+    for (const e of this.labelEntities) e.show = s.layers.parcels
 
     const globe = this.viewer.scene.globe
     globe.translucency.enabled = s.underground
@@ -381,7 +347,6 @@ export class ExplorerScene {
     const raw = String(id.id)
     if (raw.startsWith('zone:')) return raw.slice(5)
     if (raw.startsWith('pier:')) return raw.split(':')[1]
-    if (raw.startsWith('issue:')) return raw
     if (raw.startsWith('parcel:') || raw.startsWith('label:')) return raw
     return raw
   }

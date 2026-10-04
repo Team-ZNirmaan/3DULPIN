@@ -1,10 +1,9 @@
 import { ArrowRight, BrainCircuit, Layers3, ShieldCheck } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { useNavigate } from 'react-router'
-import { homePathFor, ROLES, type RoleId } from '@/app/roles'
-import { useSession } from '@/app/session-store'
+import { Link } from 'react-router'
+import { LanguageToggle } from '@/app/AppShell'
+import { FIRST_SCREEN, SCREENS } from '@/app/screens'
 import { Logo } from '@/components/Logo'
-import { cn } from '@/lib/cn'
 import { useData } from '@/store/data'
 
 function isoBox(cx: number, top: number, w: number, d: number, h: number) {
@@ -43,16 +42,7 @@ function IsoStack() {
 
 export function LandingPage() {
   const { t } = useTranslation()
-  const navigate = useNavigate()
-  const setRole = useSession((s) => s.setRole)
-  const lang = useSession((s) => s.lang)
-  const setLang = useSession((s) => s.setLang)
   const sample = useData((s) => s.units.find((u) => u.label === 'Flat 402')?.code ?? '')
-
-  const enter = (id: RoleId) => {
-    setRole(id)
-    navigate(homePathFor(id))
-  }
 
   const pillars = [
     { key: 'data', icon: Layers3 },
@@ -64,23 +54,11 @@ export function LandingPage() {
     <div className="min-h-screen bg-surface">
       <section className="relative overflow-hidden bg-navy-900 text-white">
         <div className="pointer-events-none absolute inset-0 opacity-[0.07] [background-image:linear-gradient(#fff_1px,transparent_1px),linear-gradient(90deg,#fff_1px,transparent_1px)] [background-size:32px_32px]" />
-        <div className="relative mx-auto flex max-w-6xl items-center justify-between px-6 pt-6">
+        <div className="relative mx-auto flex max-w-6xl items-center justify-between gap-3 px-6 pt-6">
           <Logo light subtitle={t('app.tagline')} />
           <div className="flex items-center gap-3">
-            <span className="whitespace-nowrap rounded border border-saffron-400/60 px-2 py-0.5 text-[0.7rem] font-bold tracking-wider text-saffron-400">{t('app.prototype')}</span>
-            <div className="flex rounded-md bg-white/10 p-0.5 text-sm">
-              {(['en', 'hi'] as const).map((l) => (
-                <button
-                  key={l}
-                  type="button"
-                  onClick={() => setLang(l)}
-                  aria-pressed={lang === l}
-                  className={cn('h-8 rounded px-2.5 font-medium', lang === l ? 'bg-white text-navy-900' : 'text-navy-100')}
-                >
-                  {l === 'en' ? 'EN' : 'हिं'}
-                </button>
-              ))}
-            </div>
+            <span className="hidden whitespace-nowrap rounded border border-saffron-400/60 px-2 py-0.5 text-[0.7rem] font-bold tracking-wider text-saffron-400 sm:inline">{t('app.prototype')}</span>
+            <LanguageToggle />
           </div>
         </div>
         <div className="relative mx-auto grid max-w-6xl items-center gap-8 px-6 pb-16 pt-10 md:grid-cols-[1.2fr_1fr]">
@@ -93,7 +71,13 @@ export function LandingPage() {
               <span className="text-saffron-400">-{sample.slice(15, 22)}</span>
               <span className="ml-1 rounded bg-success/30 px-1.5 text-green-200">{sample.slice(22)}</span>
             </div>
-            <p className="mt-2 text-xs text-navy-100/60">Flat 402 · Parent ULPIN · Type/Tower/Level/Unit · Check character</p>
+            <p className="mt-2 text-xs text-navy-100/60">{t('landing.codeCaption')}</p>
+            <Link
+              to={FIRST_SCREEN}
+              className="mt-8 inline-flex h-12 items-center gap-2 rounded-lg bg-saffron-600 px-6 text-base font-semibold text-white shadow-lg hover:bg-saffron-700"
+            >
+              {t('landing.enter')} <ArrowRight className="h-5 w-5" />
+            </Link>
           </div>
           <div className="hidden h-72 md:block">
             <IsoStack />
@@ -114,33 +98,24 @@ export function LandingPage() {
       </section>
 
       <section className="mx-auto max-w-6xl px-6 py-10">
-        <h2 className="mb-4 text-lg font-semibold text-navy-900">{t('landing.chooseRole')}</h2>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {ROLES.map((r) => {
-            const Icon = r.icon
-            const featured = r.id === 'presenter'
+        <h2 className="mb-4 text-lg font-semibold text-navy-900">{t('landing.flowTitle')}</h2>
+        <ol className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+          {SCREENS.map((s, i) => {
+            const Icon = s.icon
             return (
-              <button
-                key={r.id}
-                type="button"
-                onClick={() => enter(r.id)}
-                className={cn(
-                  'group flex items-start gap-3 rounded-xl border bg-white p-4 text-left transition-all hover:-translate-y-0.5 hover:shadow-md',
-                  featured ? 'border-saffron-400 ring-1 ring-saffron-400/40' : 'border-line hover:border-navy-100',
-                )}
-              >
-                <div className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-lg', featured ? 'bg-saffron-50 text-saffron-600' : 'bg-navy-50 text-navy-700')}>
-                  <Icon className="h-5 w-5" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="font-semibold text-slate-900">{t(`roles.${r.id}.name`)}</div>
-                  <div className="mt-0.5 text-sm text-slate-500">{t(`roles.${r.id}.desc`)}</div>
-                </div>
-                <ArrowRight className="mt-1 h-4 w-4 text-slate-300 transition-colors group-hover:text-navy-600" />
-              </button>
+              <li key={s.id}>
+                <Link to={s.path} className="group flex h-full flex-col gap-2 rounded-xl border border-line bg-white p-4 transition-all hover:-translate-y-0.5 hover:border-navy-100 hover:shadow-md">
+                  <div className="flex items-center gap-2">
+                    <span className="flex h-7 w-7 items-center justify-center rounded-full bg-navy-900 text-xs font-bold text-white">{i + 1}</span>
+                    <Icon className="h-4 w-4 text-navy-600" />
+                  </div>
+                  <div className="font-semibold text-slate-900">{t(`steps.${s.id}`)}</div>
+                  <div className="text-sm text-slate-500">{t(`landing.flow.${s.id}`)}</div>
+                </Link>
+              </li>
             )
           })}
-        </div>
+        </ol>
         <p className="mt-10 border-t border-line pt-4 text-center text-xs text-slate-500">{t('app.disclaimer')}</p>
       </section>
     </div>

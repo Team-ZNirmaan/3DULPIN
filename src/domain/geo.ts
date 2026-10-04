@@ -66,26 +66,3 @@ export function ringsIntersect(a: Ring, b: Ring): boolean {
 export function unitsAtPoint(units: SpatialUnit[], p: LonLat, z: number): SpatialUnit[] {
   return units.filter((u) => z >= u.zMin && z <= u.zMax && pointInRing(p, u.ring))
 }
-
-export interface DigHit {
-  unit: SpatialUnit
-  hitsAsset: boolean
-  hitsProtection: boolean
-  clearanceM: number
-}
-
-/** Excavation from ground (z = 0) down to -depthM over the polygon, tested against underground assets and their protection zones. */
-export function digCheck(units: SpatialUnit[], area: Ring, depthM: number): DigHit[] {
-  const digBottom = -depthM
-  const hits: DigHit[] = []
-  for (const u of units) {
-    if (u.type !== 'G' || !u.infra) continue
-    const inf = u.infra
-    const overlapsProtectionXY = ringsIntersect(area, inf.protectionRing)
-    if (!overlapsProtectionXY) continue
-    const hitsProtection = digBottom <= inf.protectionZMax
-    const hitsAsset = ringsIntersect(area, u.ring) && digBottom <= u.zMax
-    hits.push({ unit: u, hitsAsset, hitsProtection, clearanceM: Math.round((digBottom - u.zMax) * 100) / 100 })
-  }
-  return hits.sort((a, b) => Number(b.hitsAsset) - Number(a.hitsAsset) || Number(b.hitsProtection) - Number(a.hitsProtection))
-}

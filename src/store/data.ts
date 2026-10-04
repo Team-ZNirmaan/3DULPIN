@@ -1,22 +1,8 @@
 import { create } from 'zustand'
-import { useSession } from '@/app/session-store'
-import type { RoleId } from '@/app/roles'
 import { generateFixtures, type Fixtures } from '@/data/generate'
 import { rectRing, toLocal } from '@/domain/geo'
 import { GENESIS, sealEvent } from '@/domain/hash'
 import type { AuditEvent, IssueStatus, SpatialUnit, Status, ValidationIssue } from '@/domain/types'
-
-const ACTORS: Record<RoleId, string> = {
-  presenter: 'Presenter (demo)',
-  dolr: 'DoLR admin (demo)',
-  operator: 'Survey operator (demo)',
-  surveyor: 'R. Kulkarni (surveyor)',
-  authority: 'S. Tiwari (competent authority)',
-  registrar: 'A. Khan (Sub-Registrar)',
-  citizen: 'Citizen (demo)',
-  utility: 'Utility officer (demo)',
-  bank: 'Bank officer (demo)',
-}
 
 export interface FlyRequest {
   lon: number
@@ -43,14 +29,9 @@ interface DataState extends Omit<Fixtures, 'auditSeed'> {
   flyTo: (focus: { lon: number; lat: number; height: number }) => void
   logEvent: (action: string, target: string, details: string) => Promise<void>
   decideIssue: (id: string, status: IssueStatus) => Promise<void>
-  linkDeed: (deedId: string, unitCode: string) => Promise<{ doubleSale: boolean }>
-  rejectDeed: (deedId: string) => Promise<void>
-  markDeedExtracted: (deedId: string) => void
-  completeTask: (id: string, measuredAreaSqm: number | undefined, pass: boolean) => Promise<void>
   approveUnits: (codes: string[], to: Status) => Promise<void>
   setPipelineRun: (run: PipelineRunState) => void
   runPipeline: () => Promise<void>
-  tamperAudit: (index: number) => void
 }
 
 async function sealAll(seed: Fixtures['auditSeed']): Promise<AuditEvent[]> {
@@ -109,11 +90,10 @@ export const useData = create<DataState>()((set, get) => {
     flyTo: (focus) => set({ flyRequest: { ...focus, token: Date.now() } }),
 
     logEvent: async (action, target, details) => {
-      const role = useSession.getState().role
       const audit = get().audit
       const prev = audit.length ? audit[audit.length - 1].hash : GENESIS
       const sealed = await sealEvent(
-        { id: `EVT-${String(audit.length + 1).padStart(4, '0')}`, at: nowIso(), actor: ACTORS[role], role, action, target, details },
+        { id: `EVT-${String(audit.length + 1).padStart(4, '0')}`, at: nowIso(), actor: 'Official (demo)', role: 'official', action, target, details },
         prev,
       )
       set({ audit: [...get().audit, sealed] })
@@ -150,76 +130,9 @@ export const useData = create<DataState>()((set, get) => {
         'fix-approved': 'APPROVE_FIX',
         rejected: 'REJECT_ISSUE',
         'sent-to-field': 'SEND_TO_FIELD',
-        referred: 'REFER_TO_ULB',
+        referred: 'ACKNOWLEDGE',
       }
       await get().logEvent(verb[status], id, issue.title.en)
-    },
-
-    markDeedExtracted: (deedId) =>
-      set({ deeds: get().deeds.map((d) => (d.id === deedId && d.status === 'pending' ? { ...d, status: 'extracted' } : d)) }),
-
-    linkDeed: async (deedId, unitCode) => {
-      const state = get()
-      const deed = state.deeds.find((d) => d.id === deedId)!
-      const existing = state.rights.find((r) => r.unitCode === unitCode && r.type === 'ownership')
-      const existingDeed = existing?.sourceDeedId ? state.deeds.find((d) => d.id === existing.sourceDeedId) : undefined
-      const seller = deed.fields.find((f) => f.key === 'seller')?.value
-      const buyer = deed.fields.find((f) => f.key === 'buyer')?.value ?? ''
-      const ownerName = existing ? state.parties.find((p) => p.id === existing.partyId)?.name : undefined
-      const doubleSale = deed.kind === 'sale' && !!ownerName && seller !== ownerName
-
-      if (doubleSale) {
-        set({ deeds: state.deeds.map((d) => (d.id === deedId ? { ...d, status: 'flagged', linkedUnitCode: unitCode } : d)) })
-        const unit = state.units.find((u) => u.code === unitCode)!
-        const [lon, lat] = unit.ring[0]
-        const issue: ValidationIssue = {
-          id: 'ISS-006',
-          layer: 'L4',
-          rule: 'L4 Duplicate claim (two sale deeds, one unit)',
-          severity: 'blocking',
-          status: 'open',
-          title: { en: `Possible double sale: ${unit.label}`, hi: `संभावित दोहरी बिक्री: ${unit.label.replace('Flat', 'फ़्लैट')}` },
-          explanation: {
-            en: `${deed.number} sells ${unit.label} from "${seller}" to "${buyer}", but the unit is already owned by ${ownerName} under ${existingDeed?.number ?? 'an earlier deed'}. The seller in the new deed is not the current owner.`,
-            hi: `${deed.number} द्वारा ${unit.label} "${seller}" से "${buyer}" को बेचा गया है, जबकि यह इकाई पहले से ${existingDeed?.number ?? 'पूर्व विलेख'} के अंतर्गत ${ownerName} के स्वामित्व में है।`,
-          },
-          suggestion: { en: 'Hold mutation and notify the Sub-Registrar and both parties.', hi: 'नामांतरण रोकें तथा उप-पंजीयक एवं दोनों पक्षों को सूचित करें।' },
-          objectCodes: [unitCode],
-          focus: { lon, lat, height: (unit.zMin + unit.zMax) / 2 },
-          detectedBy: 'M6 · deed-to-unit linking',
-          fixable: false,
-        }
-        set({ issues: [...get().issues.filter((i) => i.id !== 'ISS-006'), issue] })
-        await get().logEvent('DOUBLE_SALE_FLAG', deed.number, `${unit.label}: existing owner ${ownerName}`)
-        return { doubleSale: true }
-      }
-
-      const buyerParty = state.parties.find((p) => buyer.startsWith(p.name))
-      set({
-        deeds: state.deeds.map((d) => (d.id === deedId ? { ...d, status: 'linked', linkedUnitCode: unitCode } : d)),
-        rights:
-          deed.kind === 'sale' && buyerParty && existing
-            ? state.rights.map((r) =>
-                r.partyId === existing.partyId && (r.unitCode === unitCode || r.note === `Allotted with ${state.units.find((u) => u.code === unitCode)?.label}`)
-                  ? { ...r, partyId: buyerParty.id, sourceDeedId: r.type === 'ownership' ? deedId : r.sourceDeedId, since: deed.registeredOn }
-                  : r,
-              )
-            : state.rights,
-      })
-      await get().logEvent('LINK_DEED', deed.number, `Linked to ${unitCode}`)
-      return { doubleSale: false }
-    },
-
-    rejectDeed: async (deedId) => {
-      const deed = get().deeds.find((d) => d.id === deedId)!
-      set({ deeds: get().deeds.map((d) => (d.id === deedId ? { ...d, status: 'rejected' } : d)) })
-      await get().logEvent('REJECT_LINK', deed.number, 'Proposed link rejected by Sub-Registrar')
-    },
-
-    completeTask: async (id, measuredAreaSqm, pass) => {
-      const task = get().tasks.find((t) => t.id === id)!
-      set({ tasks: get().tasks.map((t) => (t.id === id ? { ...t, status: pass ? 'passed' : 'failed', measuredAreaSqm } : t)) })
-      await get().logEvent('FIELD_VERIFY', task.unitCode, `${pass ? 'Passed' : 'Failed'}${measuredAreaSqm ? ` · measured ${measuredAreaSqm} m²` : ''}`)
     },
 
     approveUnits: async (codes, to) => {
@@ -243,10 +156,6 @@ export const useData = create<DataState>()((set, get) => {
       set({ pipelineRun: { status: 'done', stageIndex: stages.length, completedAt: nowIso() } })
       await get().logEvent('PIPELINE_RUN', 'Block 7', 'M1–M4 re-run completed: 84 volumes, 5 issues (simulated)')
     },
-
-    tamperAudit: (index) =>
-      set({ audit: get().audit.map((e, i) => (i === index ? { ...e, details: `${e.details} [edited]` } : e)) }),
   }
 })
 
-export const unitByCode = (code: string | undefined) => (code ? useData.getState().units.find((u) => u.code === code) : undefined)

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { digCheck, ringsIntersect, unitsAtPoint } from '@/domain/geo'
+import { ringsIntersect, unitsAtPoint } from '@/domain/geo'
 import { validateCode } from '@/domain/ulpin'
 import { GENESIS, sealEvent, verifyChain } from '@/domain/hash'
 import { generateFixtures } from './generate'
@@ -46,14 +46,6 @@ describe('3D point query', () => {
     expect(hits).toContain('U')
     expect(hits).toContain('S')
     expect(hits).toContain('B')
-  })
-})
-
-describe('dig-check', () => {
-  it('a 2.5 m dig over the main road hits the water main', () => {
-    const water = fx.units.find((u) => u.id === 'U-G-WATER')!
-    const hits = digCheck(fx.units, water.infra!.protectionRing, 2.5)
-    expect(hits.find((h) => h.unit.id === 'U-G-WATER')?.hitsAsset).toBe(true)
   })
 })
 

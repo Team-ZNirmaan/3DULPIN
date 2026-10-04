@@ -5,7 +5,6 @@ import type {
   AuditEvent,
   Building,
   BuildingAnalysis,
-  Dataset,
   Deed,
   LevelInfo,
   Parcel,
@@ -17,7 +16,6 @@ import type {
   Tier,
   UnitType,
   ValidationIssue,
-  VerificationTask,
 } from '@/domain/types'
 import { levelCode, makeCode, toBase36 } from '@/domain/ulpin'
 
@@ -32,10 +30,8 @@ export interface Fixtures {
   rights: Right[]
   deeds: Deed[]
   issues: ValidationIssue[]
-  datasets: Dataset[]
   pipeline: PipelineStage[]
   analysis: BuildingAnalysis[]
-  tasks: VerificationTask[]
   auditSeed: Omit<AuditEvent, 'hash' | 'prevHash'>[]
 }
 
@@ -714,76 +710,6 @@ export function generateFixtures(): Fixtures {
     },
   ]
 
-  // ---------- Datasets ----------
-  const datasets: Dataset[] = [
-    {
-      id: 'DS-01', name: 'Drone survey — Block 7 (nadir + 4-direction oblique)', kind: 'drone', source: 'NAKSHA-style city survey (demo)', captured: '2026-08-12',
-      crs: 'EPSG:32643', accuracy: 'GSD 2.5 cm', licence: 'Government survey data (demo)', size: '1,842 images · 38.6 GB', reliance: 'core',
-      qc: [
-        { name: 'Front / side overlap', value: '81% / 72%', threshold: '≥ 80% / 70%', pass: true },
-        { name: 'Blurred images', value: '0.4%', threshold: '≤ 2%', pass: true },
-        { name: 'Oblique coverage of facades', value: '4 / 4 directions', threshold: '4 directions', pass: true },
-      ],
-    },
-    {
-      id: 'DS-02', name: 'Ground control & check points (CORS-RTK)', kind: 'control', source: 'SoI CORS network RTK (demo)', captured: '2026-08-11',
-      crs: 'EPSG:32643 + geoid', accuracy: '8 GCP · 4 independent CP', licence: 'Government survey data (demo)', size: '12 points', reliance: 'core',
-      qc: [
-        { name: 'Check-point RMSE (horizontal)', value: '3.4 cm', threshold: '≤ 5 cm', pass: true },
-        { name: 'Check-point RMSE (vertical)', value: '5.8 cm', threshold: '≤ 10 cm', pass: true },
-      ],
-    },
-    {
-      id: 'DS-03', name: 'Photogrammetry outputs (dense cloud, DSM, DTM, true ortho, mesh)', kind: 'photogrammetry', source: 'Derived from DS-01 + DS-02', captured: '2026-08-14',
-      crs: 'EPSG:32643', accuracy: 'DSM 5 cm/px · 214 M points', licence: 'Derived', size: '62.1 GB', reliance: 'core',
-      qc: [
-        { name: 'Bundle adjustment reprojection error', value: '0.61 px', threshold: '≤ 1 px', pass: true },
-        { name: 'Ground points in DTM (dense area)', value: '11.2%', threshold: '≥ 8%', pass: true },
-      ],
-    },
-    {
-      id: 'DS-04', name: 'Cadastral parcels + ULPIN (Bhu-Naksha extract)', kind: 'cadastre', source: 'State revenue department (demo)', captured: '2025-12-01',
-      crs: 'EPSG:32643', accuracy: 'Legacy map, rubber-sheeted', licence: 'Government record (demo)', size: '18 parcels', reliance: 'core',
-      qc: [
-        { name: 'Shift vs true orthophoto (median)', value: '0.62 m', threshold: 'Record; flag > 2 m', pass: true },
-        { name: '2D topology (gaps/overlaps)', value: '0', threshold: '0', pass: true },
-      ],
-    },
-    {
-      id: 'DS-05', name: 'Approved building plan — Tower 1 (PreDCR DXF)', kind: 'plan', source: 'AutoDCR / OBPS, ULB (demo)', captured: '2022-06-18',
-      crs: 'Local CAD → georegistered', accuracy: 'Sanction DEMO/BP/2022/0147', licence: 'Government record (demo)', size: '4 floors + stilt + 2 basements', reliance: 'core',
-      qc: [
-        { name: 'Layer protocol compliance', value: '100%', threshold: '≥ 95%', pass: true },
-        { name: 'Plan scale vs footprint', value: '1.0021', threshold: '0.995–1.005', pass: true },
-      ],
-    },
-    {
-      id: 'DS-06', name: 'RERA project filing — Demo Heights', kind: 'rera', source: 'State RERA portal (demo)', captured: '2022-08-02',
-      crs: '—', accuracy: '16 units declared', licence: 'Public record (demo)', size: '16 units', reliance: 'core',
-      qc: [{ name: 'Units in filing vs plan', value: '16 / 16', threshold: 'Equal', pass: true }],
-    },
-    {
-      id: 'DS-07', name: 'Registered deeds (NGDRS + legacy scans)', kind: 'deeds', source: 'Sub-Registrar Office (demo)', captured: '2026-09-18',
-      crs: '—', accuracy: 'Structured + OCR', licence: 'Restricted (DPDP)', size: '5 deeds', reliance: 'core',
-      qc: [{ name: 'OCR mean confidence (scans)', value: '0.94', threshold: '≥ 0.85', pass: true }],
-    },
-    {
-      id: 'DS-08', name: 'Utility layers (water, sewer, power)', kind: 'utility', source: 'Utility agencies (demo)', captured: '2025-03-10',
-      crs: 'EPSG:32643', accuracy: 'ASCE 38 QL-B … QL-D', licence: 'Agency data (demo)', size: '3 networks', reliance: 'supporting',
-      qc: [{ name: 'Records with depth attribute', value: '67%', threshold: 'Record; widen buffers if missing', pass: false }],
-    },
-    {
-      id: 'DS-09', name: 'Metro as-built alignment (tunnel + viaduct)', kind: 'infra', source: 'Metro corporation (demo)', captured: '2023-04-01',
-      crs: 'EPSG:32643', accuracy: 'QL-A as-built', licence: 'Agency data (demo)', size: '2 segments', reliance: 'supporting',
-      qc: [{ name: 'Profile + cross-section present', value: 'Yes', threshold: 'Yes', pass: true }],
-    },
-    {
-      id: 'DS-10', name: 'Satellite screening (Open Buildings 2.5D)', kind: 'screening', source: 'Google Open Buildings 2.5D Temporal', captured: '2023',
-      crs: 'EPSG:4326', accuracy: '≈ 4 m effective', licence: 'CC BY 4.0 (verify)', size: 'Ward extent', reliance: 'supporting',
-      qc: [{ name: 'Used for geometry', value: 'No (screening only)', threshold: 'Never', pass: true }],
-    },
-  ]
-
   const pipeline: PipelineStage[] = [
     { id: 'ingest', label: 'Ingest & catalogue', layer: 'L2', durationMs: 1400, log: ['Registered 10 datasets in STAC catalogue', 'Lineage records created', 'Normalised rasters → COG, clouds → COPC'], outputs: [{ label: 'Datasets', value: '10' }] },
     { id: 'qc', label: 'Automated QC gates', layer: 'L2', durationMs: 1600, log: ['Check-point RMSE H 3.4 cm / V 5.8 cm — PASS', 'Plan scale 1.0021 — PASS', 'Utility depth coverage 67% — WARN (buffers widened)'], outputs: [{ label: 'Gates passed', value: '13 / 14' }] },
@@ -816,16 +742,6 @@ export function generateFixtures(): Fixtures {
     },
   ]
 
-  const tasks: VerificationTask[] = [
-    { id: 'TSK-1', unitCode: flatsByNo.get('102')!.code, reason: 'sample', status: 'pending', expectedAreaSqm: flatsByNo.get('102')!.carpetAreaSqm },
-    { id: 'TSK-2', unitCode: flatsByNo.get('203')!.code, reason: 'sample', status: 'pending', expectedAreaSqm: flatsByNo.get('203')!.carpetAreaSqm },
-    { id: 'TSK-3', unitCode: flatsByNo.get('304')!.code, reason: 'sample', status: 'pending', expectedAreaSqm: flatsByNo.get('304')!.carpetAreaSqm },
-    { id: 'TSK-4', unitCode: flatsByNo.get('401')!.code, reason: 'sample', status: 'pending', expectedAreaSqm: flatsByNo.get('401')!.carpetAreaSqm },
-    { id: 'TSK-5', unitCode: f204.code, reason: 'flag', issueId: 'ISS-003', status: 'pending', expectedAreaSqm: f204.carpetAreaSqm },
-    { id: 'TSK-6', unitCode: f303.code, reason: 'flag', issueId: 'ISS-002', status: 'pending', expectedAreaSqm: f303.carpetAreaSqm },
-    { id: 'TSK-7', unitCode: b2South[0].code, reason: 'flag', issueId: 'ISS-001', status: 'pending' },
-  ]
-
   const auditSeed: Omit<AuditEvent, 'hash' | 'prevHash'>[] = [
     { id: 'EVT-0001', at: '2024-03-11T11:02:00+05:30', actor: 'R. Kulkarni', role: 'Field surveyor', action: 'VERIFY', target: 'Tower 1 (Floors 1–4)', details: 'Field sample 4/16 units passed tolerance' },
     { id: 'EVT-0002', at: '2024-03-14T16:40:00+05:30', actor: 'S. Tiwari', role: 'Competent authority', action: 'APPROVE_MINT', target: pilotCode, details: 'Minted 72 3D-ULPINs at Occupancy Certificate stage' },
@@ -835,5 +751,5 @@ export function generateFixtures(): Fixtures {
     { id: 'EVT-0006', at: '2026-09-02T15:12:00+05:30', actor: 'A. Khan', role: 'Sub-Registrar', action: 'DEED_RECEIVED', target: 'NGDRS/BPL/2026/0412', details: 'Sale deed for Flat 301 received from NGDRS' },
   ]
 
-  return { parcels, buildings, units, parties, rights, deeds, issues, datasets, pipeline, analysis, tasks, auditSeed }
+  return { parcels, buildings, units, parties, rights, deeds, issues, pipeline, analysis, auditSeed }
 }

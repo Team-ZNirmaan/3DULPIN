@@ -10,19 +10,11 @@ mkdirSync(outDir, { recursive: true })
 
 const ROUTES = [
   '/',
-  '/app/dashboard',
+  '/app/survey',
   '/app/explorer',
-  '/app/pipeline',
-  '/app/analysis',
   '/app/validation',
-  '/app/verification',
   '/app/registry',
-  '/app/deeds',
-  '/app/audit',
-  '/app/citizen',
-  '/app/dig-check',
-  '/app/collateral',
-  '/app/exports',
+  '/app/card',
   '/verify?p=BA1|x|y|z|00',
 ]
 const VIEWPORTS = [
@@ -37,9 +29,9 @@ let failures = 0
 for (const [w, h] of VIEWPORTS) {
   const ctx = await browser.newContext({ viewport: { width: w, height: h } })
   await ctx.addInitScript(
-    ([l, lg]) => {
+    ([l]) => {
       try {
-        localStorage.setItem('bhu-aayam-session', JSON.stringify({ state: { role: 'presenter', lang: l, largeFont: lg, sidebarCollapsed: false }, version: 0 }))
+        localStorage.setItem('bhu-aayam-p2-session', JSON.stringify({ state: { lang: l }, version: 0 }))
       } catch {}
     },
     [lang, large],

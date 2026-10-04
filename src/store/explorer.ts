@@ -1,16 +1,12 @@
 import { create } from 'zustand'
 
-export type ColorMode = 'class' | 'tier' | 'status' | 'issues'
-export type LevelMode = 'all' | 'only' | 'upto'
+export type ColorMode = 'class' | 'status'
+export type LevelMode = 'all' | 'only'
 
 export interface LayerState {
   parcels: boolean
   context: boolean
-  pilot: boolean
   underground: boolean
-  elevated: boolean
-  issues: boolean
-  labels: boolean
 }
 
 interface ExplorerState {
@@ -32,7 +28,7 @@ const DEFAULTS = {
   colorMode: 'class' as ColorMode,
   levelMode: 'all' as LevelMode,
   level: '05',
-  layers: { parcels: true, context: true, pilot: true, underground: true, elevated: true, issues: true, labels: true },
+  layers: { parcels: true, context: true, underground: true },
   undergroundView: false,
   queryMode: false,
 }
