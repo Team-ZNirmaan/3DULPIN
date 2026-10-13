@@ -15,7 +15,7 @@ export const SITE = {
   groundLevelMsl: 558,
   state: 'Maharashtra',
   district: 'Pune',
-  /** From property listings for Shivajinagar (Bhamburda). To be confirmed on Mahabhumi. */
+  /** How Shivajinagar property is usually described in deeds (Bhamburda, Taluka Haveli). Kept as demo data. */
   taluka: 'Haveli',
   village: 'Bhamburda (Shivajinagar)',
   localBody: 'Pune Municipal Corporation',

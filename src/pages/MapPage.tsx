@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { useSearchParams } from 'react-router'
 import { useTranslation } from 'react-i18next'
 import { CesiumMap, type MapApi, type MapHit, type MapHover, type MapStatus } from '../map/CesiumMap'
@@ -35,6 +35,17 @@ const isBasement = (level: Level | null) => level === 'B1' || level === 'B2'
 /** Basement spaces and underground lines can only be seen in the underground view. */
 const belowGround = (code: string) => !!lineAsset(code) || isBasement(leafSpace(code)?.level ?? null)
 
+const subscribeOnline = (cb: () => void) => {
+  window.addEventListener('online', cb)
+  window.addEventListener('offline', cb)
+  return () => {
+    window.removeEventListener('online', cb)
+    window.removeEventListener('offline', cb)
+  }
+}
+/** Whether the browser has a network connection; the 3D city streams from the internet. */
+const useOnline = () => useSyncExternalStore(subscribeOnline, () => navigator.onLine)
+
 export function MapPage() {
   const { t } = useTranslation()
   const [params, setParams] = useSearchParams()
@@ -44,6 +55,7 @@ export function MapPage() {
   const [exploded, setExploded] = useState(false)
   const [sliceChoice, setSlice] = useState<Level | null>(null)
   const mapRef = useRef<MapApi>(null)
+  const online = useOnline()
   // A camera flight to a space, requested by a list or a link. URL changes reach the page as a
   // transition, later than this state, so the flight waits until the page shows its view; otherwise the
   // view change would start its own camera move and cancel the flight.
@@ -177,7 +189,13 @@ export function MapPage() {
               {t('map.loading')}
             </p>
           )}
-          {status === 'error' && (
+          {!online && (
+            <p className={`${s.status} ${s.error}`} role="alert">
+              <AlertIcon size={15} />
+              {t('map.offline')}
+            </p>
+          )}
+          {status === 'error' && online && (
             <p className={`${s.status} ${s.error}`} role="alert">
               <AlertIcon size={15} />
               {t('map.loadError')}

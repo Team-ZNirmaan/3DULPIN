@@ -1,10 +1,11 @@
 import { Link } from 'react-router'
 import { useTranslation } from 'react-i18next'
 import { CodeChip } from '../../components/CodeChip'
-import { SITE, spaces, underground, type Plot, type Space } from '../../data'
+import { spaces, underground, type Plot, type Space } from '../../data'
 import { LEVELS } from '../../data/tower'
 import { depthRange, levelName, num, spaceName } from '../../lib/format'
 import s from './Panels.module.css'
+import { sitePlace, useLocalData } from '../../i18n/localData'
 
 type Props = {
   plot: Plot
@@ -21,6 +22,7 @@ const LEVEL_ORDER = [...LEVELS.map((l) => l.level)].reverse()
 /** A plot's record: its ULPIN, area, restrictions and, for Tower 1, every 3D space on it. */
 export function PlotPanel({ plot, towerRegistered, selectedCode, onSelect, onBack }: Props) {
   const { t, i18n } = useTranslation()
+  const ld = useLocalData()
   const lang = i18n.language
   const showSpaces = plot.hasTower && towerRegistered
   const plotCode = spaces.find((sp) => sp.type === 'S')!
@@ -36,7 +38,7 @@ export function PlotPanel({ plot, towerRegistered, selectedCode, onSelect, onBac
       <h2 id="plot-title" className={s.title}>
         {t('plot.title', { cts: plot.cts })}
       </h2>
-      <p className={s.place}>{SITE.village}, {SITE.taluka}, {SITE.district}</p>
+      <p className={s.place}>{sitePlace(ld)}</p>
 
       <dl className={s.facts}>
         <dt>{t('plot.ulpin')}</dt>
@@ -70,7 +72,7 @@ export function PlotPanel({ plot, towerRegistered, selectedCode, onSelect, onBac
                     {t(`underground.${line.key}`)}
                   </span>
                   <span className={s.restrictionMeta}>
-                    {t(`rights.${r.kind}`)}, {r.holder}
+                    {t(`rights.${r.kind}`)}, {ld(r.holder)}
                   </span>
                   <span className={s.restrictionMeta}>{depthRange(t, lang, line)}</span>
                 </button>

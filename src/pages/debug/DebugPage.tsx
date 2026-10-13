@@ -15,10 +15,6 @@ const nf = new Intl.NumberFormat('en-IN', { maximumFractionDigits: 2 })
 const share = new Intl.NumberFormat('en-IN', { minimumFractionDigits: 3, maximumFractionDigits: 3 })
 const LEVEL_ORDER = (sp: Space) => (sp.levelOrder === 10 ? 100 : sp.levelOrder)
 
-function Verify() {
-  return <span className={s.verify}>to verify</span>
-}
-
 export function DebugPage() {
   const { t } = useTranslation()
   const counts = Object.fromEntries(SPACE_TYPES.map((ty) => [ty, ty === 'G' ? underground.length : spaces.filter((sp) => sp.type === ty).length]))
@@ -68,11 +64,11 @@ export function DebugPage() {
             </dd>
             <dt>Village</dt>
             <dd>
-              {SITE.village} <Verify />
+              {SITE.village}
             </dd>
             <dt>Taluka</dt>
             <dd>
-              {SITE.taluka} <Verify />
+              {SITE.taluka}
             </dd>
             <dt>District, state</dt>
             <dd>

@@ -5,6 +5,7 @@ import { findByCode, type Space } from '../../data'
 import { heightRange, levelName, num, spaceName } from '../../lib/format'
 import { RightsList } from './RightsList'
 import s from './Panels.module.css'
+import { useLocalData } from '../../i18n/localData'
 
 type Props = {
   space: Space
@@ -16,6 +17,7 @@ type Props = {
 export function SpacePanel({ space, onClose, onSelect }: Props) {
   const { t, i18n } = useTranslation()
   const lang = i18n.language
+  const ld = useLocalData()
   const linked = (code: string) => findByCode(code) as Space | undefined
 
   return (
@@ -59,7 +61,7 @@ export function SpacePanel({ space, onClose, onSelect }: Props) {
         {space.holder && (
           <>
             <dt>{t('details.holder')}</dt>
-            <dd>{space.holder}</dd>
+            <dd>{ld(space.holder)}</dd>
           </>
         )}
         {space.type === 'U' && (

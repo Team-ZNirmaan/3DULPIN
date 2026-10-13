@@ -23,7 +23,8 @@
 
 .left {
   left: 16px;
-  max-height: calc(100% - 32px - 170px);
+  /* Stops above the legend (MapLegend sets --legend-space to the room it takes). */
+  max-height: calc(100% - 16px - var(--legend-space, 186px));
 }
 
 .right {

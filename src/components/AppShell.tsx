@@ -14,8 +14,8 @@ export function AppShell() {
   const { t } = useTranslation()
 
   return (
-    <div className={s.shell}>
-      <header className={s.header}>
+    <div className={s.shell} data-print="flow">
+      <header className={s.header} data-print="hide">
         <NavLink to="/map" className={s.brand}>
           <LogoMark />
           <span className={s.brandText}>
@@ -41,7 +41,7 @@ export function AppShell() {
         </div>
       </header>
 
-      <main className={s.main}>
+      <main className={s.main} data-print="flow">
         <Outlet />
       </main>
     </div>

@@ -1,8 +1,9 @@
 import { useTranslation } from 'react-i18next'
-import { plots, SITE, TOWER, towerPlot, underground } from '../../data'
+import { plots, TOWER, towerPlot, underground } from '../../data'
 import { LEVELS } from '../../data/tower'
 import { num } from '../../lib/format'
 import s from './RegisterPage.module.css'
+import { sitePlace, useLocalData } from '../../i18n/localData'
 
 type Props = {
   selected: string | null
@@ -20,6 +21,7 @@ const basements = LEVELS.filter((l) => l.order < 0).length
  */
 export function PlotStep({ selected, onSelect, onNext }: Props) {
   const { t, i18n } = useTranslation()
+  const ld = useLocalData()
   const lang = i18n.language
   const plot = plots.find((p) => p.cts === selected)
 
@@ -52,7 +54,7 @@ export function PlotStep({ selected, onSelect, onNext }: Props) {
           <>
             <h2 className={s.cardTitle}>{t('plot.title', { cts: plot.cts })}</h2>
             <p className={s.place}>
-              {SITE.village}, {SITE.taluka}, {SITE.district}
+              {sitePlace(ld)}
             </p>
             <dl className={s.facts}>
               <dt>{t('plot.ulpin')}</dt>
@@ -61,7 +63,7 @@ export function PlotStep({ selected, onSelect, onNext }: Props) {
               <dd>{num(lang, plot.areaM2, 0)} m²</dd>
               <dt>{t('register.building')}</dt>
               <dd>
-                {TOWER.name}
+                {ld(TOWER.name)}
                 <span className={s.subtle}>{t('register.storeys', { basements, floors })}</span>
               </dd>
               <dt>{t('plot.restrictions')}</dt>

@@ -60,3 +60,28 @@ html[lang='hi'] body {
 html[lang='hi'] body *:not(code) {
   letter-spacing: 0 !important;
 }
+
+/* Printing (the property card): hide the app header and let the page flow onto paper. */
+@media print {
+  html,
+  body,
+  #root {
+    height: auto;
+    background: #fff;
+  }
+
+  [data-print='hide'] {
+    display: none !important;
+  }
+
+  [data-print='flow'] {
+    display: block !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  * {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+}

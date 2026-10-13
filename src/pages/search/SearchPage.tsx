@@ -4,10 +4,11 @@ import { useTranslation } from 'react-i18next'
 import { CodeChip } from '../../components/CodeChip'
 import { CodeExplainer } from '../../components/CodeExplainer'
 import { PageLayout } from '../../components/PageLayout'
-import { findByCode, SITE, spaces, towerPlot, underground, type Plot, type Space, type UndergroundAsset } from '../../data'
+import { findByCode, spaces, towerPlot, underground, type Plot, type Space, type UndergroundAsset } from '../../data'
 import { LEVELS } from '../../data/tower'
 import { depthRange, heightRange, levelName, num, spaceName } from '../../lib/format'
 import { lookup, type Lookup, type Mark } from '../../lib/lookup'
+import { sitePlace, useLocalData } from '../../i18n/localData'
 import { useDemoState } from '../../state/demo'
 import s from './SearchPage.module.css'
 
@@ -87,7 +88,13 @@ function Result({ result, search }: { result: Lookup; search: (q: string) => voi
   const { t } = useTranslation()
   switch (result.kind) {
     case 'empty':
-      return null
+      return (
+        <section className={s.explainCard}>
+          <h2 className={s.subhead}>{t('search.emptyTitle')}</h2>
+          <CodeExplainer code={FLAT_502.code} />
+          <p className={s.hint}>{t('search.emptyText')}</p>
+        </section>
+      )
     case 'plot':
       return <PlotResult plot={result.plot} />
     case 'space':
@@ -226,6 +233,7 @@ function Explained({ code }: { code: string }) {
 
 function PlotResult({ plot }: { plot: Plot }) {
   const { t, i18n } = useTranslation()
+  const ld = useLocalData()
   const { towerRegistered } = useDemoState()
   const lang = i18n.language
   const issued = plot.hasTower && towerRegistered
@@ -239,7 +247,7 @@ function PlotResult({ plot }: { plot: Plot }) {
           <p className={s.eyebrow}>{t('types.S')}</p>
           <h2 className={s.title}>{t('plot.title', { cts: plot.cts })}</h2>
           <p className={s.place}>
-            {SITE.village}, {SITE.taluka}, {SITE.district}
+            {sitePlace(ld)}
           </p>
         </div>
         <Link to={`/map?plot=${plot.cts}${issued ? '&view=3d' : ''}`} className={s.secondary}>
@@ -310,6 +318,7 @@ function PlotResult({ plot }: { plot: Plot }) {
 
 function SpaceResult({ space }: { space: Space }) {
   const { t, i18n } = useTranslation()
+  const ld = useLocalData()
   const lang = i18n.language
   return (
     <>
@@ -346,7 +355,7 @@ function SpaceResult({ space }: { space: Space }) {
           {space.holder && (
             <>
               <dt>{t('details.holder')}</dt>
-              <dd>{space.holder}</dd>
+              <dd>{ld(space.holder)}</dd>
             </>
           )}
         </dl>
@@ -358,6 +367,7 @@ function SpaceResult({ space }: { space: Space }) {
 
 function LineResult({ line }: { line: UndergroundAsset }) {
   const { t, i18n } = useTranslation()
+  const ld = useLocalData()
   const lang = i18n.language
   return (
     <>
@@ -392,7 +402,7 @@ function LineResult({ line }: { line: UndergroundAsset }) {
             ))}
           </dd>
           <dt>{t('details.holder')}</dt>
-          <dd>{line.rights[0]?.holder}</dd>
+          <dd>{ld(line.rights[0]?.holder ?? '')}</dd>
         </dl>
       </section>
       <Explained code={line.code} />

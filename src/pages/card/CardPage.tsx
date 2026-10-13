@@ -5,6 +5,7 @@ import { QrCode } from '../../components/QrCode'
 import { findByCode, SITE, TOWER, towerPlot, underground, type Space, type UndergroundAsset } from '../../data'
 import { depthRange, heightRange, levelName, lineLength, num, spaceName } from '../../lib/format'
 import { parseCode } from '../../lib/ulpin'
+import { sitePlace, useLocalData } from '../../i18n/localData'
 import { useDemoState } from '../../state/demo'
 import { RightsList } from '../../map/panels/RightsList'
 import { TowerDrawing } from './TowerDrawing'
@@ -104,9 +105,14 @@ function Side({ code, drawing, caption, mapLink }: { code: string; drawing: Reac
         <QrCode text={cardUrl(code)} label={t('card.qrLabel')} />
         <p>{t('card.qrText')}</p>
       </div>
-      <Link to={mapLink} className={s.secondary}>
-        {t('search.showOnMap')}
-      </Link>
+      <div className={s.actions}>
+        <Link to={mapLink} className={s.secondary}>
+          {t('search.showOnMap')}
+        </Link>
+        <button type="button" className={s.secondary} onClick={() => window.print()}>
+          {t('card.print')}
+        </button>
+      </div>
     </aside>
   )
 }
@@ -122,6 +128,7 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
 
 function SpaceCard({ space }: { space: Space }) {
   const { t, i18n } = useTranslation()
+  const ld = useLocalData()
   const lang = i18n.language
   const name = spaceName(t, space)
   const linked = (c: string) => findByCode(c) as Space | undefined
@@ -129,23 +136,23 @@ function SpaceCard({ space }: { space: Space }) {
 
   return (
     <article className={s.sheet}>
-      <Head type={space.type} name={name} sub={`${TOWER.name}, ${t('plot.title', { cts: towerPlot.cts })}`} code={space.code} />
+      <Head type={space.type} name={name} sub={`${ld(TOWER.name)}, ${t('plot.title', { cts: towerPlot.cts })}`} code={space.code} />
       <div className={s.body}>
         <div className={s.main}>
           <section>
             <h2 className={s.section}>{t('card.location')}</h2>
             <dl className={s.fields}>
               <Row label={t('card.address')}>
-                {name}, {TOWER.name}, {TOWER.road}, {t('map.place')} {SITE.pincode}
+                {name}, {ld(TOWER.name)}, {ld(TOWER.road)}, {t('map.place')} {SITE.pincode}
               </Row>
               <Row label={t('card.village')}>
-                {SITE.village}, {SITE.taluka}, {SITE.district}
+                {sitePlace(ld)}
               </Row>
               <Row label={t('card.plot')}>{t('plot.title', { cts: towerPlot.cts })}</Row>
               <Row label={t('card.parentUlpin')}>
                 <span className={s.mono}>{towerPlot.ulpin}</span>
               </Row>
-              <Row label={t('card.building')}>{TOWER.name}</Row>
+              <Row label={t('card.building')}>{ld(TOWER.name)}</Row>
               <Row label={t('details.level')}>{levelName(t, space.level)}</Row>
               <Row label={t('details.height')}>{heightRange(t, lang, space)}</Row>
             </dl>
@@ -163,7 +170,7 @@ function SpaceCard({ space }: { space: Space }) {
           <section>
             <h2 className={s.section}>{t('card.holderSection')}</h2>
             <dl className={s.fields}>
-              <Row label={t('details.holder')}>{space.holder ?? space.rights[0]?.holder}</Row>
+              <Row label={t('details.holder')}>{ld(space.holder ?? space.rights[0]?.holder ?? '')}</Row>
               {space.type === 'U' && (
                 <Row label={t('details.parking')}>
                   {space.parkingCodes?.length
@@ -196,7 +203,7 @@ function SpaceCard({ space }: { space: Space }) {
                   <li key={u.code}>
                     <b>{t(`underground.${u.key}`)}</b>
                     <span>
-                      {t(`rights.${u.rights[0].kind}`)}, {u.rights[0].holder}
+                      {t(`rights.${u.rights[0].kind}`)}, {ld(u.rights[0].holder)}
                     </span>
                     <span>{depthRange(t, lang, u)}</span>
                     <Link to={`/card/${u.code}`} className={s.link}>
@@ -225,6 +232,7 @@ function SpaceCard({ space }: { space: Space }) {
 
 function LineCard({ line }: { line: UndergroundAsset }) {
   const { t, i18n } = useTranslation()
+  const ld = useLocalData()
   const lang = i18n.language
   const name = t(`underground.${line.key}`)
   const root = line.code.slice(0, 14)
@@ -246,7 +254,7 @@ function LineCard({ line }: { line: UndergroundAsset }) {
                 ))}
               </Row>
               <Row label={t('card.village')}>
-                {SITE.village}, {SITE.taluka}, {SITE.district}
+                {sitePlace(ld)}
               </Row>
               <Row label={t('details.depth')}>{depthRange(t, lang, line)}</Row>
               <Row label={t('details.height')}>{heightRange(t, lang, { zBottom: -(line.axisDepthM + line.radiusM), zTop: -(line.axisDepthM - line.radiusM) })}</Row>

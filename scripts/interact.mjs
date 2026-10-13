@@ -1,7 +1,7 @@
 // Drives the 3D Bhu-Naksha like a user and screenshots each step (chunk 3 review and regression check).
 // Usage: npm run build && node scripts/interact.mjs   (writes PNGs to ./screenshots/interact-*.png)
 import { spawn } from 'node:child_process'
-import { mkdirSync } from 'node:fs'
+import { mkdirSync, writeFileSync } from 'node:fs'
 import { chromium } from '@playwright/test'
 
 const PORT = 4176
@@ -147,6 +147,14 @@ try {
   check(await has(page.getByRole('img', { name: /Drawing of Tower 1/ })), 'the card has the tower drawing')
   await shot(page, 'c1-flat-502')
   await page.locator('article').screenshot({ path: `${OUT}/interact-c1-flat-502-full.png` })
+  // Print: the card alone, on one A4 page.
+  const pdf = await page.pdf({ format: 'A4', printBackground: true })
+  writeFileSync(`${OUT}/interact-c1-flat-502.pdf`, pdf)
+  const pages = (pdf.toString('latin1').match(/\/Type\s*\/Page(?!s)/g) ?? []).length
+  check(pages === 1, `the printed card fits on one A4 page (${pages})`)
+  await page.emulateMedia({ media: 'print' })
+  await page.screenshot({ path: `${OUT}/interact-c1-print.png`, fullPage: true })
+  await page.emulateMedia({ media: 'screen' })
   await page.getByRole('link', { name: /Allotted parking/ }).click()
   check(await has(page.getByRole('heading', { name: /^Allotted parking/ })), 'the card links to the allotted parking card')
   await page.locator('article').screenshot({ path: `${OUT}/interact-c2-bay-full.png` })
@@ -160,6 +168,17 @@ try {
   page = await openPage(browser, `#/card/${FLAT_502}`, { registered: true, lang: 'hi', size: { width: 1366, height: 2000 } })
   await page.locator('article').screenshot({ path: `${OUT}/interact-c4-flat-502-hi-full.png` })
   await page.close()
+
+  // E. Network down: when Cesium's servers cannot be reached, the map says so.
+  {
+    const p = await browser.newPage({ viewport: { width: 1366, height: 768 } })
+    await p.route(/cesium\.com/, (r) => r.abort())
+    await p.goto(BASE + '#/map', { waitUntil: 'load' })
+    await p.waitForFunction(() => document.body.dataset.mapStatus === 'error', null, { timeout: 120000 }).catch(() => {})
+    check(await has(p.getByRole('alert').filter({ hasText: 'could not load' })), 'without the 3D city servers, the map shows a clear message')
+    await shot(p, 'e1-network-down')
+    await p.close()
+  }
 
   // 1. A shared link to flat 502 opens in 3D, flies to it and selects it.
   page = await open(browser, `#/map?code=${FLAT_502}`)

@@ -404,6 +404,10 @@
   background: var(--canvas);
 }
 
+.explainCard .hint {
+  margin-top: 16px;
+}
+
 .explainCard .subhead {
   margin: 0 0 16px;
   padding: 0;
