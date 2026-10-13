@@ -22,7 +22,20 @@ function plotsCentre(): [number, number] {
 const TOWER_VIEW = { heading: 40, pitch: -24 }
 const RANGE: Record<Exclude<MapView, '2d'>, number> = { '3d': 150, close: 84 }
 
-export function goTo(viewer: Viewer, view: MapView, groundHeight: number, animate: boolean): Promise<void> {
+/** Looks down on one floor at an angle, so its flats read like a floor plan. */
+export function lookDownOn(viewer: Viewer, sphere: BoundingSphere): Promise<void> {
+  return new Promise((resolve) => {
+    viewer.camera.flyToBoundingSphere(sphere, {
+      offset: new HeadingPitchRange(CesiumMath.toRadians(TOWER_VIEW.heading), CesiumMath.toRadians(-55), Math.max(95, sphere.radius * 5)),
+      duration: flightSeconds(),
+      complete: resolve,
+      cancel: resolve,
+    })
+  })
+}
+
+/** Glides to a view. With exploded floors the tower is taller, so the 3D views pull back to fit it. */
+export function goTo(viewer: Viewer, view: MapView, groundHeight: number, animate: boolean, exploded = false): Promise<void> {
   return new Promise((resolve) => {
     const duration = animate ? flightSeconds() : 0
     if (view === '2d') {
@@ -37,9 +50,9 @@ export function goTo(viewer: Viewer, view: MapView, groundHeight: number, animat
       return
     }
     const [lon, lat] = localToLonLat([0, 0])
-    const sphere = new BoundingSphere(Cartesian3.fromDegrees(lon, lat, groundHeight + 13), 22)
+    const sphere = new BoundingSphere(Cartesian3.fromDegrees(lon, lat, groundHeight + (exploded ? 26 : 13)), exploded ? 34 : 22)
     viewer.camera.flyToBoundingSphere(sphere, {
-      offset: new HeadingPitchRange(CesiumMath.toRadians(TOWER_VIEW.heading), CesiumMath.toRadians(TOWER_VIEW.pitch), RANGE[view]),
+      offset: new HeadingPitchRange(CesiumMath.toRadians(TOWER_VIEW.heading), CesiumMath.toRadians(TOWER_VIEW.pitch), RANGE[view] * (exploded ? 1.35 : 1)),
       duration,
       complete: resolve,
       cancel: resolve,

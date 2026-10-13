@@ -11,7 +11,8 @@
     "lint": "eslint .",
     "test": "vitest run",
     "shots": "node scripts/screenshots.mjs",
-    "data": "node scripts/build-site-data.mjs"
+    "data": "node scripts/build-site-data.mjs",
+    "interact": "node scripts/interact.mjs"
   },
   "dependencies": {
     "@fontsource/inter": "^5.3.0",

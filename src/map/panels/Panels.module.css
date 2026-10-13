@@ -1,0 +1,395 @@
+/* Floating glass panels on the map: plot record (left), space details (right), tool dock (right edge). */
+.panel {
+  position: absolute;
+  top: 16px;
+  width: 340px;
+  max-height: calc(100% - 32px);
+  overflow-y: auto;
+  padding: 18px 20px 20px;
+  border: 1px solid rgb(255 255 255 / 70%);
+  border-radius: var(--radius);
+  background: var(--glass);
+  backdrop-filter: blur(10px) saturate(1.2);
+  box-shadow: var(--shadow-panel);
+  animation: panelIn var(--t-panel) var(--ease);
+}
+
+@keyframes panelIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+.left {
+  left: 16px;
+  max-height: calc(100% - 32px - 170px);
+}
+
+.right {
+  right: 100px;
+  max-height: calc(100% - 32px - 70px);
+}
+
+.head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.title {
+  margin-top: 4px;
+  font-size: 22px;
+}
+
+.place {
+  margin-top: 4px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.close {
+  width: 30px;
+  height: 30px;
+  flex: none;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  font-size: 18px;
+  line-height: 1;
+  color: var(--ink-2);
+  cursor: pointer;
+}
+
+.close:hover {
+  background: var(--canvas);
+}
+
+.back {
+  margin-bottom: 8px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+  cursor: pointer;
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: 118px 1fr;
+  gap: 8px 12px;
+  margin: 16px 0 0;
+  font-size: 13.5px;
+}
+
+.facts dt {
+  padding-top: 1px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.facts dd {
+  margin: 0;
+  color: var(--ink);
+}
+
+.mono {
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+
+.restriction {
+  display: block;
+}
+
+.subhead {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 18px 0 8px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+  font-family: var(--font-sans);
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.count {
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.codeRows {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 6px 10px;
+  font-size: 12.5px;
+}
+
+.codeLabel {
+  color: var(--muted);
+}
+
+.rights {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rights li {
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgb(255 255 255 / 70%);
+}
+
+.rightKind {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.share {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  color: var(--ink-2);
+}
+
+.rightHolder {
+  margin-top: 2px;
+  font-size: 13px;
+  color: var(--ink);
+}
+
+.rightSource {
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.primary {
+  display: inline-flex;
+  margin-top: 16px;
+  padding: 9px 16px;
+  border-radius: 8px;
+  background: var(--accent);
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  text-decoration: none;
+}
+
+.primary:hover {
+  background: #a04a16;
+}
+
+.linkButton {
+  display: block;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: 13.5px;
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.notice {
+  margin-top: 16px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: var(--accent-soft);
+  font-size: 13px;
+  color: #7a3a12;
+}
+
+.notice .primary {
+  margin-top: 10px;
+}
+
+.muted {
+  margin-top: 16px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* Spaces list, grouped by level */
+.list {
+  display: grid;
+  gap: 10px;
+}
+
+.groupHead {
+  margin-bottom: 2px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  padding: 5px 8px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  font-size: 13.5px;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+
+.row:hover {
+  background: rgb(11 31 58 / 5%);
+}
+
+.rowActive,
+.rowActive:hover {
+  background: var(--accent-soft);
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+
+.swatch {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  flex: none;
+  border: 1px solid rgb(11 31 58 / 30%);
+  border-radius: 3px;
+}
+
+/* Tool dock on the right edge */
+.dock {
+  position: absolute;
+  top: 50%;
+  right: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+  width: 68px;
+  transform: translateY(-50%);
+}
+
+.tool,
+.floors {
+  border: 1px solid rgb(255 255 255 / 70%);
+  border-radius: var(--radius);
+  background: var(--glass);
+  backdrop-filter: blur(10px) saturate(1.2);
+  box-shadow: var(--shadow-panel);
+}
+
+.tool {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 4px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink-2);
+  cursor: pointer;
+}
+
+.toolOn {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: #fff;
+}
+
+.floors {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 6px;
+}
+
+.floorsLabel {
+  margin-bottom: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-align: center;
+  color: var(--muted);
+}
+
+.floor {
+  height: 28px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-2);
+  cursor: pointer;
+}
+
+.floor:hover {
+  background: rgb(11 31 58 / 6%);
+}
+
+.floorOn,
+.floorOn:hover {
+  background: var(--accent);
+  color: #fff;
+}
+
+/* Hover tooltip */
+.tip {
+  position: absolute;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 11px;
+  border-radius: 8px;
+  background: var(--ink);
+  box-shadow: var(--shadow-panel);
+  font-size: 13px;
+  color: #fff;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.tip b {
+  font-weight: 600;
+}
+
+.tipLevel {
+  margin-left: 8px;
+  color: rgb(255 255 255 / 70%);
+}

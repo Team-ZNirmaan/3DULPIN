@@ -3,6 +3,7 @@ import {
   Cartesian3,
   ClassificationType,
   Color,
+  ConstantProperty,
   CustomDataSource,
   LabelStyle,
   NearFarScalar,
@@ -59,9 +60,33 @@ export function addPlots(viewer: Viewer, plots: Plot[], groundHeight: number) {
       },
     })
   }
+  // Saffron outline for the selected plot, drawn over the others.
+  const selected = source.entities.add({
+    id: 'plot-selected',
+    show: false,
+    polyline: {
+      positions: ring(plots[0]),
+      width: 4,
+      clampToGround: true,
+      classificationType: ClassificationType.TERRAIN,
+      material: COLOURS.accent(),
+      zIndex: 2,
+    },
+  })
   viewer.dataSources.add(source)
 
   return {
+    /** The CTS number a pick result points at, if it is one of our plots. */
+    identify(picked: unknown): string | null {
+      const id = ((picked as { id?: { id?: unknown } } | undefined)?.id?.id ?? '') as string
+      const m = /^plot-(?:fill|line|label)-(.+)$/.exec(typeof id === 'string' ? id : '')
+      return m ? m[1] : null
+    },
+    setSelected(cts: string | null) {
+      const plot = plots.find((p) => p.cts === cts)
+      selected.show = !!plot
+      if (plot && selected.polyline) selected.polyline.positions = new ConstantProperty(ring(plot))
+    },
     /** Plot numbers are shown in the parcel map and hidden in the 3D view, where the tower is the focus. */
     showLabels(show: boolean) {
       for (const p of plots) {

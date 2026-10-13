@@ -44,9 +44,21 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+  width: 100%;
   margin-top: 14px;
-  padding-top: 12px;
+  padding: 12px 0 0;
+  border: 0;
   border-top: 1px solid var(--line);
+  background: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.tower:hover .towerName {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 .towerName {
