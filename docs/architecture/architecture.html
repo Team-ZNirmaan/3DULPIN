@@ -1,0 +1,418 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>ZNirmaan Portal architecture</title>
+    <!-- Rendered to docs/images/architecture.png by `npm run diagram`. Fonts come from the app's own packages. -->
+    <link rel="stylesheet" href="../../node_modules/@fontsource/inter/400.css" />
+    <link rel="stylesheet" href="../../node_modules/@fontsource/inter/500.css" />
+    <link rel="stylesheet" href="../../node_modules/@fontsource/inter/600.css" />
+    <link rel="stylesheet" href="../../node_modules/@fontsource/inter/700.css" />
+    <link rel="stylesheet" href="../../node_modules/@fontsource/noto-serif/700.css" />
+    <link rel="stylesheet" href="../../node_modules/@fontsource/jetbrains-mono/500.css" />
+    <style>
+      :root {
+        --ink: #0b1f3a;
+        --ink-2: #1b3358;
+        --canvas: #f7f5f0;
+        --surface: #ffffff;
+        --line: #e4e1d8;
+        --line-strong: #d3cfc3;
+        --muted: #5b6472;
+        --accent: #b8561b;
+        --accent-soft: #fbeee4;
+        --success: #0f7b4f;
+        --type-s: #f0e442;
+        --type-u: #0072b2;
+        --type-l: #e69f00;
+        --type-c: #009e73;
+        --type-g: #cc79a7;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+      }
+      body {
+        background: var(--canvas);
+        font-family: Inter, system-ui, sans-serif;
+        color: var(--ink);
+      }
+      #diagram {
+        position: relative;
+        width: 1680px;
+        padding: 44px 48px 40px;
+        background: var(--canvas);
+      }
+      header {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        padding-bottom: 22px;
+        border-bottom: 2px solid var(--ink);
+      }
+      h1 {
+        font-family: 'Noto Serif', Georgia, serif;
+        font-size: 34px;
+        font-weight: 700;
+      }
+      .sub {
+        margin-top: 6px;
+        font-size: 16px;
+        color: var(--muted);
+      }
+      .badge {
+        padding: 6px 14px;
+        border: 1px solid rgb(184 86 27 / 45%);
+        border-radius: 999px;
+        background: var(--accent-soft);
+        font-size: 13px;
+        font-weight: 600;
+        color: #7a3a12;
+      }
+      .rule {
+        height: 3px;
+        background: var(--accent);
+        width: 120px;
+        margin-top: -2px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: 300px 300px 330px 1fr;
+        column-gap: 64px;
+        margin-top: 70px;
+      }
+      .col h2 {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 14px;
+        font-size: 12.5px;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--ink-2);
+      }
+      .col h2 .n {
+        display: inline-grid;
+        place-items: center;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: var(--ink);
+        font-size: 12px;
+        letter-spacing: 0;
+        color: #fff;
+      }
+      .when {
+        margin: -8px 0 14px 34px;
+        font-size: 12.5px;
+        color: var(--muted);
+      }
+      .stack {
+        display: grid;
+        gap: 14px;
+      }
+      .card {
+        position: relative;
+        padding: 14px 16px 15px;
+        border: 1px solid var(--line-strong);
+        border-radius: 12px;
+        background: var(--surface);
+        box-shadow: 0 1px 2px rgb(11 31 58 / 6%);
+      }
+      .card h3 {
+        font-size: 15px;
+        font-weight: 600;
+      }
+      .card p {
+        margin-top: 4px;
+        font-size: 13px;
+        line-height: 1.45;
+        color: var(--muted);
+      }
+      .card code {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 12px;
+        color: var(--ink-2);
+      }
+      .card.ext {
+        border-style: dashed;
+        background: #fbfaf7;
+      }
+      .card.accent {
+        border-color: rgb(184 86 27 / 55%);
+        box-shadow: inset 3px 0 0 var(--accent);
+      }
+      .chip {
+        display: inline-block;
+        margin: 8px 6px 0 0;
+        padding: 2px 8px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: var(--canvas);
+        font-size: 11.5px;
+        font-weight: 500;
+        color: var(--ink-2);
+      }
+      .sw {
+        display: inline-block;
+        width: 9px;
+        height: 9px;
+        margin-right: 5px;
+        border-radius: 2px;
+        vertical-align: 0;
+      }
+      /* The screens column: four screens, the map one holding the 3D scene. */
+      .screens {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+      }
+      .screens .map {
+        grid-column: 1 / -1;
+      }
+      .scene {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        margin-top: 12px;
+      }
+      .scene div {
+        padding: 8px 10px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--canvas);
+        font-size: 12px;
+        line-height: 1.35;
+        color: var(--ink-2);
+      }
+      .scene b {
+        display: block;
+        font-size: 12.5px;
+        color: var(--ink);
+      }
+      .band {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 14px;
+        margin-top: 34px;
+        padding-top: 22px;
+        border-top: 1px solid var(--line-strong);
+      }
+      .band .card h3 {
+        font-size: 14px;
+      }
+      .legend {
+        display: flex;
+        gap: 22px;
+        margin-top: 22px;
+        font-size: 12.5px;
+        color: var(--muted);
+      }
+      .legend span {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .legend i {
+        display: inline-block;
+        width: 34px;
+        border-top: 2px solid var(--ink-2);
+      }
+      .legend i.dash {
+        border-top-style: dashed;
+        border-color: var(--accent);
+      }
+      svg#arrows {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        overflow: visible;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="diagram">
+      <header>
+        <div>
+          <h1>ZNirmaan Portal architecture</h1>
+          <p class="sub">A static web app. Everything runs in the browser; there is no backend.</p>
+        </div>
+        <span class="badge">Prototype, demo data</span>
+      </header>
+      <div class="rule"></div>
+
+      <div class="grid">
+        <!-- 1. Sources -->
+        <section class="col" id="c1">
+          <h2 id="h1"><span class="n">1</span> Sources</h2>
+          <div class="stack">
+            <div class="card ext" id="osm">
+              <h3>OpenStreetMap extract</h3>
+              <p>Real building footprints near Shivaji Nagar metro station and the Purple Line alignment, saved in <code>scripts/osm/</code>.</p>
+              <span class="chip">Build time</span>
+            </div>
+            <div class="card ext" id="ion">
+              <h3>Cesium ion</h3>
+              <p>World Terrain for ground heights, OSM Buildings for the surrounding city, and aerial imagery.</p>
+              <span class="chip">Streamed while you use the map</span>
+            </div>
+            <div class="card ext" id="browser">
+              <h3>Browser storage</h3>
+              <p>Remembers the language and whether Tower 1 is registered, so a reload keeps the demo where it was. Read by every screen.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- 2. Data -->
+        <section class="col" id="c2">
+          <h2 id="h2"><span class="n">2</span> Demo data</h2>
+          <div class="stack">
+            <div class="card" id="generated">
+              <h3>Site data</h3>
+              <p><code>site.generated.json</code>: 15 plots with CTS numbers and ULPINs, the metro tunnels and the water main.</p>
+            </div>
+            <div class="card" id="tower">
+              <h3>Tower 1</h3>
+              <p>Built in code: 2 basements, ground floor, 8 floors and a terrace. Every flat, parking bay and common area as a 3D volume with its holder and rights.</p>
+              <span class="chip"><i class="sw" style="background: var(--type-u)"></i>32 flats</span>
+              <span class="chip"><i class="sw" style="background: var(--type-l)"></i>24 allotted</span>
+              <span class="chip"><i class="sw" style="background: var(--type-c)"></i>22 common</span>
+            </div>
+            <div class="card" id="lines">
+              <h3>Underground lines</h3>
+              <p>Two metro tunnels and a water main, each with a G-type 3D-ULPIN, and the restrictions on every plot above them.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- 3. Core -->
+        <section class="col" id="c3">
+          <h2 id="h3"><span class="n">3</span> Core logic</h2>
+          <p class="when">Plain TypeScript, unit tested</p>
+          <div class="stack">
+            <div class="card accent" id="ulpin">
+              <h3>3D-ULPIN codes</h3>
+              <p>Builds and reads <code>PLOT-ULPIN-T B LL UUU C</code>. The check character (ISO 7064 MOD 37,36) catches every single typo and nearly every swap.</p>
+            </div>
+            <div class="card" id="lookup">
+              <h3>Search lookup</h3>
+              <p>Plot number, ULPIN or 3D-ULPIN; marks the wrong characters and suggests the right code.</p>
+            </div>
+            <div class="card" id="hatch">
+              <h3>Right of user geometry</h3>
+              <p>The strip of each plot above a metro tube, as hatch lines draped on the ground.</p>
+            </div>
+            <div class="card" id="i18n">
+              <h3>English and Hindi</h3>
+              <p>Every label, and record text such as names, places and deeds, in Devanagari.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- 4. Screens -->
+        <section class="col" id="c4">
+          <h2 id="h4"><span class="n">4</span> Screens</h2>
+          <p class="when">React, one page each</p>
+          <div class="screens">
+            <div class="card map" id="map">
+              <h3>3D Bhu-Naksha</h3>
+              <p>Parcel map, 3D view and underground view of Shivajinagar, drawn with CesiumJS.</p>
+              <div class="scene">
+                <div><b>Plots</b>Outlines, numbers, selection</div>
+                <div><b>Tower 1</b>One block per space; explode, floor picker</div>
+                <div><b>Underground</b>Tunnels, water main, hatching</div>
+                <div><b>Ground fade</b>See-through ground near the site</div>
+                <div><b>Camera</b>Parcel, 3D, underground, fly to a space</div>
+                <div><b>Panels</b>Plot, space and line details</div>
+              </div>
+            </div>
+            <div class="card" id="register">
+              <h3>Register a building</h3>
+              <p>Plot, six survey data sources, generate, 88 new codes.</p>
+            </div>
+            <div class="card" id="search">
+              <h3>Search land records</h3>
+              <p>One box, typo check, code explained part by part.</p>
+            </div>
+            <div class="card" id="card" style="grid-column: 1 / -1">
+              <h3>3D property card</h3>
+              <p>Location, areas, holder, rights and documents, parking, restrictions; a drawing of the tower with the space highlighted, a QR code and an A4 print layout.</p>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div class="band">
+        <div class="card">
+          <h3>Build and hosting</h3>
+          <p>Vite builds a static site into <code>dist/</code> with hash links, so any static host works. The Cesium token comes from <code>.env.local</code> and is never committed.</p>
+        </div>
+        <div class="card">
+          <h3>Checks</h3>
+          <p>45 unit tests (codes, typo check, data, translations), 43 browser checks of every screen, and a timed demo rehearsal in both languages.</p>
+        </div>
+        <div class="card">
+          <h3>Stack</h3>
+          <p>React, TypeScript, Vite, CesiumJS, react-router, i18next, qrcode, Fontsource fonts, Vitest and Playwright.</p>
+        </div>
+      </div>
+
+      <div class="legend">
+        <span><i></i> Data and code used by the next step</span>
+        <span><i class="dash"></i> Streamed from Cesium ion at run time</span>
+      </div>
+
+      <svg id="arrows">
+        <defs>
+          <marker id="head" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0 0 L10 5 L0 10 z" fill="#1b3358" />
+          </marker>
+          <marker id="headAccent" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0 0 L10 5 L0 10 z" fill="#b8561b" />
+          </marker>
+        </defs>
+      </svg>
+    </div>
+
+    <script>
+      // Arrows drawn after layout: one between each pair of columns, and the dashed stream from
+      // Cesium ion to the map, routed in a clear lane above the columns so it crosses no text.
+      const root = document.getElementById('diagram').getBoundingClientRect()
+      const svg = document.getElementById('arrows')
+      const box = (id) => {
+        const r = (document.getElementById(id) ?? document.querySelector(id)).getBoundingClientRect()
+        return { l: r.left - root.left, r: r.right - root.left, t: r.top - root.top, b: r.bottom - root.top, cy: (r.top + r.bottom) / 2 - root.top }
+      }
+      const path = (d, stroke, dash, head) => {
+        const p = document.createElementNS('http://www.w3.org/2000/svg', 'path')
+        p.setAttribute('d', d)
+        p.setAttribute('fill', 'none')
+        p.setAttribute('stroke', stroke)
+        p.setAttribute('stroke-width', '1.8')
+        if (dash) p.setAttribute('stroke-dasharray', dash)
+        p.setAttribute('marker-end', `url(#${head})`)
+        svg.appendChild(p)
+      }
+      for (const [from, to, heading] of [
+        ['c1', 'c2', 'h1'],
+        ['c2', 'c3', 'h2'],
+        ['c3', 'c4', 'h3'],
+      ]) {
+        const a = box(from)
+        const b = box(to)
+        const y = box(`#${heading} .n`).cy
+        path(`M ${a.r + 24} ${y} L ${b.l - 8} ${y}`, '#1b3358', null, 'head')
+      }
+      {
+        const ion = box('ion')
+        const map = box('map')
+        const lane = box('h1').t - 34
+        const x = ion.r + 12
+        const into = map.l + 300
+        path(`M ${ion.r} ${ion.cy} L ${x} ${ion.cy} L ${x} ${lane} L ${into} ${lane} L ${into} ${map.t - 2}`, '#b8561b', '6 5', 'headAccent')
+      }
+      document.body.dataset.ready = '1'
+    </script>
+  </body>
+</html>
