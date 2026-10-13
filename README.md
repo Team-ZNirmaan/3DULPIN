@@ -139,9 +139,11 @@ Underground lines cross many plots, so they cannot belong to one. Each network g
 
 ## Architecture
 
-![ZNirmaan Portal architecture: sources, demo data, core logic and screens](docs/images/architecture.png)
+![3D ULPIN system architecture: data acquisition, data prep, core AI engine, verification, and the 3D land records portal](docs/images/system-architecture.png)
 
-The same, as a diagram GitHub draws from text:
+The full system has five stages: survey data is collected, prepared into one 3D copy of the site, turned into 3D spaces by the AI engine, checked by a field surveyor and approved by the competent authority, and then issued as 3D-ULPINs in the land records portal. **This repository is stage 5, the 3D Land Records Portal**, built with demo data in place of stages 1 to 4.
+
+How the portal itself is put together, as a diagram GitHub draws from text:
 
 ```mermaid
 flowchart LR
@@ -242,7 +244,6 @@ About 6 to 8 minutes. Open the site once beforehand so the map is cached, and pi
 | `npm run interact` | 43 checks in a real browser: Register end to end, Search (valid codes, typos, wrong shapes), the property cards and their print layout, the map (select, explode, floor picker, underground, links), and the message shown when the 3D city cannot load |
 | `npm run rehearse` | The demo script above, timed, in both languages, with screenshots and videos |
 | `npm run shots` | Screenshots of every screen at 1366×768 and 1920×1080 in English and Hindi |
-| `npm run diagram` | Re-renders `docs/images/architecture.png` from `docs/architecture/architecture.html` |
 | `npm run typecheck` | TypeScript, strict |
 | `npm run lint` | ESLint |
 
@@ -271,8 +272,8 @@ src/
     panels/    Plot, space and line panels
   pages/       Register, Search, property card, map page, debug page
   components/  Header, code chip, code explainer, QR code, page layout
-scripts/       Site data builder, screenshots, browser checks, rehearsal, diagram
-docs/          README images and the architecture diagram source
+scripts/       Site data builder, screenshots, browser checks, rehearsal
+docs/          Images used in this README
 ```
 
 ## Tech stack
