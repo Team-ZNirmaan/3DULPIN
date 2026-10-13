@@ -116,8 +116,71 @@
   font-size: 13px;
 }
 
+.restrictions {
+  display: grid;
+  gap: 6px;
+}
+
 .restriction {
-  display: block;
+  display: grid;
+  gap: 2px;
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgb(255 255 255 / 70%);
+  text-align: left;
+  cursor: pointer;
+}
+
+.restriction:hover {
+  border-color: rgb(11 31 58 / 25%);
+}
+
+.restrictionName {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.restrictionMeta {
+  padding-left: 21px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.rouNote {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin-top: 10px;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--ink-2);
+}
+
+/* The same diagonal hatching as the right of user strips on the map. */
+.hatchSwatch {
+  width: 16px;
+  height: 12px;
+  flex: none;
+  margin-top: 2px;
+  border: 1px solid var(--type-g);
+  border-radius: 3px;
+  background: repeating-linear-gradient(-45deg, var(--type-g) 0 1.5px, transparent 1.5px 4px);
+}
+
+.plotLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+}
+
+.plotLinks .linkButton {
+  display: inline;
 }
 
 .subhead {

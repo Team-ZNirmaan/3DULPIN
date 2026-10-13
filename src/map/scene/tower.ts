@@ -288,7 +288,7 @@ export function addTower(viewer: Viewer, groundHeight: number, notRegisteredText
     }
     const start = performance.now()
     const step = (now: number) => {
-      const t = Math.min(1, (now - start) / EXPLODE_MS)
+      const t = Math.max(0, Math.min(1, (now - start) / EXPLODE_MS))
       state.explode = from + (target - from) * ease(t)
       applyExplode()
       scene.requestRender()

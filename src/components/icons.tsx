@@ -38,6 +38,18 @@ export function CubeIcon({ size = 16, className }: IconProps) {
   )
 }
 
+/** Ground line with layers below it, for the underground view. */
+export function UndergroundIcon({ size = 16, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
+      <path d="M2 7h20" />
+      <path d="M5 4.5 7 7M10 4.5 12 7M15 4.5 17 7" opacity="0.6" />
+      <circle cx="12" cy="15.5" r="4.5" />
+      <circle cx="12" cy="15.5" r="1.5" />
+    </svg>
+  )
+}
+
 export function AlertIcon({ size = 16, className }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">

@@ -6,11 +6,12 @@ import { usingEvaluationToken } from '../map/config'
 import { HoverTip } from '../map/HoverTip'
 import { MapLegend } from '../map/MapLegend'
 import { PlotPanel } from '../map/panels/PlotPanel'
+import { LinePanel } from '../map/panels/LinePanel'
 import { SpacePanel } from '../map/panels/SpacePanel'
 import { SceneDock } from '../map/SceneDock'
 import { MAP_VIEWS, type MapView } from '../map/scene/camera'
-import { ViewToggle } from '../map/ViewToggle'
-import { findByCode, plots, spaces, towerPlot, type Space } from '../data'
+import { ViewToggle, type ToggleView } from '../map/ViewToggle'
+import { findByCode, plots, spaces, towerPlot, type Space, type UndergroundAsset } from '../data'
 import type { Level } from '../lib/ulpin'
 import { useDemoState } from '../state/demo'
 import { AlertIcon, PinIcon } from '../components/icons'
@@ -24,6 +25,16 @@ function leafSpace(code: string | null): Space | null {
   return found && 'type' in found && LEAF.has(found.type) ? (found as Space) : null
 }
 
+/** An underground line (metro tunnel or water main), selectable in the underground view. */
+function lineAsset(code: string | null): UndergroundAsset | null {
+  const found = code ? findByCode(code) : undefined
+  return found && !('type' in found) ? found : null
+}
+
+const isBasement = (level: Level | null) => level === 'B1' || level === 'B2'
+/** Basement spaces and underground lines can only be seen in the underground view. */
+const belowGround = (code: string) => !!lineAsset(code) || isBasement(leafSpace(code)?.level ?? null)
+
 export function MapPage() {
   const { t } = useTranslation()
   const [params, setParams] = useSearchParams()
@@ -31,18 +42,34 @@ export function MapPage() {
   const [status, setStatus] = useState<MapStatus>('loading')
   const [hover, setHover] = useState<MapHover>(null)
   const [exploded, setExploded] = useState(false)
-  const [slice, setSlice] = useState<Level | null>(null)
+  const [sliceChoice, setSlice] = useState<Level | null>(null)
   const mapRef = useRef<MapApi>(null)
+  // A camera flight to a space, requested by a list or a link. URL changes reach the page as a
+  // transition, later than this state, so the flight waits until the page shows its view; otherwise the
+  // view change would start its own camera move and cancel the flight.
+  const [flight, setFlight] = useState<{ code: string; view: MapView } | null>(null)
+  const flown = useRef<object | null>(null)
 
-  // URL state: view, selected space (code) and selected plot. Codes only select once the tower is registered.
+  // URL state: view, selected space (code) and selected plot. Tower codes only select once the tower is
+  // registered; the underground lines have their codes already.
   const code = params.get('code')
   const space = towerRegistered ? leafSpace(code) : null
+  const line = lineAsset(code)
+  const selectedCode = space?.code ?? line?.code ?? null
   const codeOnTower = !!code && (!!leafSpace(code) || spaces.some((sp) => sp.code === code))
   const plotCts = params.get('plot') ?? (codeOnTower ? towerPlot.cts : null)
   const plot = plots.find((p) => p.cts === plotCts) ?? null
   const viewParam = params.get('view')
-  // A shared link to a space opens straight in 3D.
-  const view: MapView = MAP_VIEWS.includes(viewParam as MapView) ? (viewParam as MapView) : space ? '3d' : '2d'
+  // A shared link to a space opens straight in 3D, or underground for a basement space or a line.
+  const view: MapView = MAP_VIEWS.includes(viewParam as MapView)
+    ? (viewParam as MapView)
+    : selectedCode
+      ? belowGround(selectedCode)
+        ? 'under'
+        : '3d'
+      : '2d'
+  // Basement floors are only in the floor picker in the underground view.
+  const slice = view !== 'under' && isBasement(sliceChoice) ? null : sliceChoice
 
   // Every change keeps the current view in the URL, so selecting or clearing never moves the camera
   // to a different view by itself.
@@ -63,12 +90,18 @@ export function MapPage() {
       { replace: true },
     )
 
-  const setView = (next: '2d' | '3d') => update({ view: next === '2d' ? null : next })
+  // Leaving the underground view also lets go of a basement space or line, which can no longer be seen.
+  const setView = (next: ToggleView) =>
+    update({ view: next === '2d' ? null : next, ...(next !== 'under' && selectedCode && belowGround(selectedCode) ? { code: null } : {}) })
   const clear = () => update({ code: null, plot: null })
-  /** Select a space; optionally fly the camera to it (from a list or a link, not from a click on the block). */
+  /**
+   * Select a space or an underground line; optionally fly the camera to it (from a list or a link, not
+   * from a click on the map). Spaces below ground switch to the underground view.
+   */
   const selectSpace = (next: string, fly: boolean) => {
-    update({ code: next, plot: towerPlot.cts, view: fly && view === '2d' ? '3d' : view === '2d' ? null : view })
-    if (fly) setTimeout(() => mapRef.current?.flyToSpace(next), 0)
+    const target: MapView = belowGround(next) ? 'under' : view === '2d' ? '3d' : view
+    update({ code: next, view: target, ...(leafSpace(next) ? { plot: towerPlot.cts } : {}) })
+    if (fly) setFlight({ code: next, view: target })
   }
 
   const onPick = (hit: MapHit) => {
@@ -77,13 +110,19 @@ export function MapPage() {
     update({ code: null, plot: hit.plot })
   }
 
+  useEffect(() => {
+    if (!flight || flight.view !== view || flown.current === flight) return
+    flown.current = flight
+    mapRef.current?.flyToSpace(flight.code)
+  }, [flight, view])
+
   // Deep link: once the map is ready, fly to the space in the link.
   const deepLinkDone = useRef(false)
   useEffect(() => {
     if (status !== 'ready' || deepLinkDone.current) return
     deepLinkDone.current = true
-    if (space) mapRef.current?.flyToSpace(space.code)
-  }, [status, space])
+    if (selectedCode) mapRef.current?.flyToSpace(selectedCode)
+  }, [status, selectedCode])
 
   // Escape clears the selection.
   useEffect(() => {
@@ -103,7 +142,7 @@ export function MapPage() {
         view={view}
         towerRegistered={towerRegistered}
         notRegisteredText={t('map.notRegistered')}
-        selectedCode={space?.code ?? null}
+        selectedCode={selectedCode}
         selectedPlot={plot?.cts ?? null}
         exploded={exploded}
         slice={slice}
@@ -113,7 +152,7 @@ export function MapPage() {
       />
 
       {plot ? (
-        <PlotPanel plot={plot} towerRegistered={towerRegistered} selectedCode={space?.code ?? null} onSelect={(c) => selectSpace(c, true)} onBack={clear} />
+        <PlotPanel plot={plot} towerRegistered={towerRegistered} selectedCode={selectedCode} onSelect={(c) => selectSpace(c, true)} onBack={clear} />
       ) : (
         <section className={s.panel} aria-labelledby="map-title">
           <h1 id="map-title" className={s.title}>
@@ -149,10 +188,11 @@ export function MapPage() {
       )}
 
       {space && <SpacePanel space={space} onClose={() => update({ code: null })} onSelect={(c) => selectSpace(c, true)} />}
-      {showTools && <SceneDock exploded={exploded} onExplode={setExploded} slice={slice} onSlice={setSlice} />}
-      <HoverTip hover={hover && hover.space !== space?.code ? hover : null} />
-      <MapLegend towerRegistered={towerRegistered} />
-      <ViewToggle value={view === '2d' ? '2d' : '3d'} onChange={setView} />
+      {line && <LinePanel line={line} onClose={() => update({ code: null })} onSelectPlot={(cts) => update({ plot: cts })} />}
+      {showTools && <SceneDock exploded={exploded} onExplode={setExploded} slice={slice} onSlice={setSlice} includeBasements={view === 'under'} />}
+      <HoverTip hover={hover && hover.space !== selectedCode ? hover : null} />
+      <MapLegend towerRegistered={towerRegistered} view={view} />
+      <ViewToggle value={view === 'close' ? '3d' : view} onChange={setView} />
     </div>
   )
 }

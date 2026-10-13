@@ -17,6 +17,8 @@ const SHOTS = [
   { name: 'map-3d', route: '#/map?view=3d', map: '3d', registered: true, langs: ['en'], sizes: SIZES },
   { name: 'map-3d-unregistered', route: '#/map?view=3d', map: '3d', registered: false, langs: ['en'], sizes: [SIZES[1]] },
   { name: 'map-close', route: '#/map?view=close', map: 'close', registered: true, langs: ['en'], sizes: [SIZES[1]] },
+  { name: 'map-under', route: '#/map?view=under', map: 'under', registered: true, langs: ['en'], sizes: SIZES },
+  { name: 'map-under-unregistered', route: '#/map?view=under', map: 'under', registered: false, langs: ['en'], sizes: [SIZES[1]] },
   { name: 'map-3d', route: '#/map?view=3d', map: '3d', registered: true, langs: ['hi'], sizes: [SIZES[0]] },
   // Other screens
   { name: 'search', route: '#/search', langs: ['en', 'hi'], sizes: [SIZES[0]] },

@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { CodeChip } from '../../components/CodeChip'
 import { findByCode, type Space } from '../../data'
 import { heightRange, levelName, num, spaceName } from '../../lib/format'
+import { RightsList } from './RightsList'
 import s from './Panels.module.css'
 
 type Props = {
@@ -87,21 +88,7 @@ export function SpacePanel({ space, onClose, onSelect }: Props) {
         )}
       </dl>
 
-      <h3 className={s.subhead}>{t('details.rights')}</h3>
-      <ul className={s.rights}>
-        {space.rights.map((r, i) => (
-          <li key={i}>
-            <p className={s.rightKind}>
-              {t(`rights.${r.kind}`)}
-              {r.sharePct !== undefined && <span className={s.share}>{num(lang, r.sharePct, 3)}%</span>}
-            </p>
-            <p className={s.rightHolder}>{r.holder}</p>
-            <p className={s.rightSource}>
-              {t(`docs.${r.source.kind}`)}, {r.source.ref}
-            </p>
-          </li>
-        ))}
-      </ul>
+      <RightsList rights={space.rights} />
 
       <Link to={`/card/${space.code}`} className={s.primary}>
         {t('details.openCard')}

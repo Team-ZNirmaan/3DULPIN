@@ -37,6 +37,9 @@ export const hi: Messages = {
     legend: 'संकेत',
     plotBoundary: 'प्लॉट सीमा',
     unregisteredBuilding: 'बिना 3D-ULPIN वाला भवन',
+    viewUnder: 'भूमिगत',
+    rightOfUser: 'मेट्रो का उपयोग अधिकार',
+    lines: 'मेट्रो सुरंग और मुख्य जल पाइपलाइन',
   },
   plot: {
     title: 'CTS {{cts}}',
@@ -54,6 +57,7 @@ export const hi: Messages = {
     notIssued: 'टावर 1 के लिए अभी 3D-ULPIN जारी नहीं हुए हैं।',
     register: 'यह प्लॉट पंजीकृत करें',
     back: 'सभी प्लॉट',
+    rouNote: 'नक्शे पर धारीदार हिस्सा मेट्रो सुरंग के ऊपर की ज़मीन है, जिसमें मेट्रो रेल प्राधिकरण का उपयोग का अधिकार है।',
   },
   details: {
     close: 'बंद करें',
@@ -69,6 +73,11 @@ export const hi: Messages = {
     allottedTo: 'आवंटित',
     rights: 'अधिकार',
     openCard: 'संपत्ति कार्ड खोलें',
+    depth: 'ज़मीन से गहराई',
+    depthValue: 'ज़मीन से {{from}} मी से {{to}} मी नीचे',
+    diameter: 'व्यास',
+    length: 'इस नक्शे पर लंबाई',
+    runsUnder: 'इन प्लॉटों के नीचे',
   },
   levels: {
     B2: 'बेसमेंट 2',

@@ -2,11 +2,12 @@ import { BoundingSphere, Cartesian3, HeadingPitchRange, Math as CesiumMath, type
 import { plots } from '../../data'
 import { localToLonLat } from '../../data/geo'
 
-// The three camera positions of the map: the parcel map from above, the 3D view of Tower 1,
-// and a closer 3D view.
+// The camera positions of the map: the parcel map from above, the 3D view of Tower 1, a closer
+// 3D view, and the underground view (tower, basements and the metro tunnels below, seen through
+// the faded ground).
 
-export type MapView = '2d' | '3d' | 'close'
-export const MAP_VIEWS: MapView[] = ['2d', '3d', 'close']
+export type MapView = '2d' | '3d' | 'close' | 'under'
+export const MAP_VIEWS: MapView[] = ['2d', '3d', 'close', 'under']
 
 /** Seconds for a camera glide, or 0 when the user prefers reduced motion. */
 const flightSeconds = () => (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? 0 : 1.8)
@@ -20,7 +21,13 @@ function plotsCentre(): [number, number] {
 
 // Looking north-east, so the afternoon sun lights the two faces we see.
 const TOWER_VIEW = { heading: 40, pitch: -24 }
-const RANGE: Record<Exclude<MapView, '2d'>, number> = { '3d': 150, close: 84 }
+/** For each 3D view: the height of the point looked at (metres above the ground floor), the pitch and the distance. */
+const FRAME: Record<Exclude<MapView, '2d'>, { z: number; radius: number; pitch: number; range: number }> = {
+  '3d': { z: 13, radius: 22, pitch: TOWER_VIEW.pitch, range: 150 },
+  close: { z: 13, radius: 22, pitch: TOWER_VIEW.pitch, range: 84 },
+  // From the tower roof down to the metro tunnels, about 60 m tall, seen from above the faded ground.
+  under: { z: -8, radius: 32, pitch: -22, range: 190 },
+}
 
 /** Looks down on one floor at an angle, so its flats read like a floor plan. */
 export function lookDownOn(viewer: Viewer, sphere: BoundingSphere): Promise<void> {
@@ -50,9 +57,11 @@ export function goTo(viewer: Viewer, view: MapView, groundHeight: number, animat
       return
     }
     const [lon, lat] = localToLonLat([0, 0])
-    const sphere = new BoundingSphere(Cartesian3.fromDegrees(lon, lat, groundHeight + (exploded ? 26 : 13)), exploded ? 34 : 22)
+    const f = FRAME[view]
+    const z = exploded ? (view === 'under' ? f.z : f.z * 2) : f.z
+    const sphere = new BoundingSphere(Cartesian3.fromDegrees(lon, lat, groundHeight + z), f.radius * (exploded ? 1.5 : 1))
     viewer.camera.flyToBoundingSphere(sphere, {
-      offset: new HeadingPitchRange(CesiumMath.toRadians(TOWER_VIEW.heading), CesiumMath.toRadians(TOWER_VIEW.pitch), RANGE[view] * (exploded ? 1.35 : 1)),
+      offset: new HeadingPitchRange(CesiumMath.toRadians(TOWER_VIEW.heading), CesiumMath.toRadians(f.pitch), f.range * (exploded ? 1.35 : 1)),
       duration,
       complete: resolve,
       cancel: resolve,

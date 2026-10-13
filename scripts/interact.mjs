@@ -129,10 +129,39 @@ try {
   await shot(page, '9-plot-unregistered')
   await page.close()
 
-  // 9. Hindi: the same flat link.
+  // 10. Underground: the tower, its basements and the metro tunnels below the faded ground.
+  page = await open(browser, '#/map?view=under')
+  await page.waitForFunction(() => document.body.dataset.mapView === 'under', null, { timeout: 120000 })
+  check((await page.getByRole('button', { name: 'Basement 2' }).count()) === 1, 'underground view adds the basements to the floor picker')
+  await shot(page, '11-underground')
+
+  // 11. From a plot above the metro, open the tunnel: underground view, line panel, camera on the tunnel.
+  await page.goto(BASE + '#/map?plot=1181', { waitUntil: 'load' })
+  await page.waitForFunction(() => document.body.dataset.mapStatus === 'ready', null, { timeout: 240000 })
+  check((await page.getByText('Hatched on the map').count()) === 1, 'plot above the metro explains the hatching')
+  await page.getByRole('button', { name: /Metro tunnel, up line/ }).click()
+  await page.waitForFunction(() => (document.body.dataset.mapFocus ?? '').includes('-G'), null, { timeout: 120000 })
+  check((await page.locator('#space-title').innerText()) === 'Metro tunnel, up line', 'restriction opens the metro tunnel')
+  check((await page.getByRole('button', { name: 'Underground', pressed: true }).count()) === 1, 'opening the tunnel switches to the underground view')
+  await shot(page, '12-metro-up-line')
+  await page.close()
+
+  // 12. A flat's allotted parking bay is in the basement: the link goes underground to it.
+  page = await open(browser, `#/map?code=${FLAT_502}`)
+  await page.waitForFunction((c) => document.body.dataset.mapFocus === c, FLAT_502, { timeout: 240000 })
+  await page.locator('section[aria-labelledby="space-title"]').getByRole('button', { name: /Allotted parking/ }).click()
+  await page.waitForFunction((c) => !!document.body.dataset.mapFocus && document.body.dataset.mapFocus !== c, FLAT_502, { timeout: 120000 })
+  check((await page.locator('#space-title').innerText()).startsWith('Allotted parking'), 'allotted parking link selects the bay')
+  await shot(page, '13-parking-bay')
+  await page.getByRole('button', { name: 'Basement 2' }).click()
+  await page.waitForFunction(() => document.body.dataset.mapFrame === 'B2-false', null, { timeout: 60000 }).catch(() => {})
+  await shot(page, '14-basement-2')
+  await page.close()
+
+  // 13. Hindi: the same flat link.
   page = await open(browser, `#/map?code=${FLAT_502}`, { lang: 'hi', size: { width: 1366, height: 768 } })
   await page.waitForFunction((c) => document.body.dataset.mapFocus === c, FLAT_502, { timeout: 240000 })
-  await shot(page, '10-flat-502-hi')
+  await shot(page, '15-flat-502-hi')
   await page.close()
 
   await browser.close()

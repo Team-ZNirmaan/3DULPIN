@@ -19,10 +19,12 @@ import {
   type Cesium3DTileset,
 } from 'cesium'
 import 'cesium/Build/Cesium/Widgets/widgets.css'
-import { plots, towerPlot } from '../data'
+import { plots, towerPlot, underground } from '../data'
 import { SITE } from '../data/site'
 import { COLOURS } from './palette'
 import { goTo, lookDownOn, type MapView } from './scene/camera'
+import { addGroundFade, fadedArea } from './scene/ground'
+import { addNetworks } from './scene/networks'
 import { addPlots } from './scene/plots'
 import { addTower } from './scene/tower'
 import type { Level } from '../lib/ulpin'
@@ -30,6 +32,7 @@ import s from './CesiumMap.module.css'
 
 export type MapStatus = 'loading' | 'ready' | 'error'
 
+/** A click on the map: a 3D space (a block of the tower or an underground line, by its 3D-ULPIN) or a plot. */
 export type MapHit = { space: string } | { plot: string } | null
 export type MapHover = { space: string; x: number; y: number } | null
 export type MapApi = { flyToSpace: (code: string) => void }
@@ -53,6 +56,10 @@ type Handles = {
   groundHeight: number
   plotsLayer: ReturnType<typeof addPlots>
   tower: ReturnType<typeof addTower>
+  networks: ReturnType<typeof addNetworks>
+  ground: ReturnType<typeof addGroundFade>
+  /** In the underground view, hides the city buildings that stand on the faded ground. */
+  setBuildingsUnderground: (underground: boolean) => void
   whenLoaded: () => Promise<void>
 }
 
@@ -130,9 +137,7 @@ export function CesiumMap(props: Props) {
       })
     })
 
-    const buildingsReady = createOsmBuildingsAsync({
-      style: new Cesium3DTileStyle({ color: `color('${COLOURS.contextBuildings}')` }),
-    }).catch(() => undefined)
+    const buildingsReady = createOsmBuildingsAsync({ style: buildingStyle(false, false) }).catch(() => undefined)
 
     let cleanupInput: (() => void) | undefined
     ;(async () => {
@@ -151,30 +156,46 @@ export function CesiumMap(props: Props) {
       if (cancelled || viewer.isDestroyed()) return
       document.body.dataset.groundEllipsoidHeight = groundHeight.toFixed(2)
 
+      let hideByStyle = false
       if (buildings) {
         // Real buildings cast shadows on the ground but do not shadow themselves (no striped acne).
         buildings.shadows = ShadowMode.CAST_ONLY
-        hideRealBuildingOnTowerPlot(viewer, buildings)
+        hideByStyle = !hideRealBuildingOnTowerPlot(viewer, buildings)
         scene.primitives.add(buildings)
+      }
+      const setBuildingsUnderground = (underground: boolean) => {
+        if (buildings) buildings.style = buildingStyle(underground, hideByStyle)
       }
       const plotsLayer = addPlots(viewer, plots, groundHeight)
       const tower = addTower(viewer, groundHeight, initial.current.notRegisteredText)
       tower.setRegistered(initial.current.towerRegistered)
+      const networks = addNetworks(viewer, underground, plots, groundHeight)
+      const ground = addGroundFade(viewer)
+      const under = initial.current.view === 'under'
+      tower.setUnderground(under)
+      networks.setVisible(under)
+      plotsLayer.setUnderground(under)
+      ground.setUnderground(under)
+      setBuildingsUnderground(under)
 
+      // Resolves once the visible tiles have loaded, or after a few seconds if one never finishes.
       const whenLoaded = () =>
         new Promise<void>((resolve) => {
+          const done = () => {
+            remove()
+            clearTimeout(timer)
+            resolve()
+          }
+          const timer = setTimeout(done, 15000)
           const remove = scene.postRender.addEventListener(() => {
-            if (scene.globe.tilesLoaded && (!buildings || buildings.tilesLoaded)) {
-              remove()
-              resolve()
-            }
+            if (scene.globe.tilesLoaded && (!buildings || buildings.tilesLoaded)) done()
           })
         })
 
       plotsLayer.showLabels(initial.current.view === '2d')
       await goTo(viewer, initial.current.view, groundHeight, false)
       if (cancelled || viewer.isDestroyed()) return
-      setHandles({ viewer, groundHeight, plotsLayer, tower, whenLoaded })
+      setHandles({ viewer, groundHeight, plotsLayer, tower, networks, ground, setBuildingsUnderground, whenLoaded })
 
       // Hover and click. Hover picks at most once per frame.
       viewer.screenSpaceEventHandler.removeInputAction(ScreenSpaceEventType.LEFT_DOUBLE_CLICK)
@@ -189,8 +210,10 @@ export function CesiumMap(props: Props) {
           if (!pending || viewer.isDestroyed()) return
           const picked = scene.pick(new Cartesian2(pending.x, pending.y))
           const hit = tower.identify(picked)
-          const space = hit && 'space' in hit ? hit.space : null
+          const line = networks.identify(picked)
+          const space = hit && 'space' in hit ? hit.space : line
           tower.setHovered(space)
+          networks.setHovered(line)
           const clickable = !!hit || !!plotsLayer.identify(picked)
           scene.canvas.style.cursor = clickable ? 'pointer' : ''
           onHoverRef.current?.(space ? { space, x: pending.x, y: pending.y } : null)
@@ -200,6 +223,8 @@ export function CesiumMap(props: Props) {
         const picked = scene.pick(e.position)
         const hit = tower.identify(picked)
         if (hit && 'space' in hit) return onPickRef.current?.({ space: hit.space })
+        const line = networks.identify(picked)
+        if (line) return onPickRef.current?.({ space: line })
         if (hit && 'towerMass' in hit) return onPickRef.current?.({ plot: towerPlot.cts })
         const cts = plotsLayer.identify(picked)
         onPickRef.current?.(cts ? { plot: cts } : null)
@@ -208,6 +233,8 @@ export function CesiumMap(props: Props) {
         cancelAnimationFrame(frame)
         input.destroy()
         tower.destroy()
+        networks.destroy()
+        ground.destroy()
       }
       await whenLoaded()
       if (cancelled) return
@@ -232,6 +259,7 @@ export function CesiumMap(props: Props) {
 
   useEffect(() => {
     handles?.tower.setSelected(selectedCode)
+    handles?.networks.setSelected(selectedCode)
   }, [handles, selectedCode])
 
   useEffect(() => {
@@ -282,12 +310,22 @@ export function CesiumMap(props: Props) {
     () => ({
       flyToSpace(code: string) {
         if (!handles) return
+        // An underground line is long; the underground view shows it best, under the tower and the plots.
+        if (handles.networks.has(code)) {
+          delete document.body.dataset.mapFocus
+          goTo(handles.viewer, 'under', handles.groundHeight, true, frameState.current.exploded)
+            .then(() => handles.whenLoaded())
+            .then(() => (document.body.dataset.mapFocus = code))
+          return
+        }
         const sphere = handles.tower.boundingSphereOf(code)
         if (!sphere) return
         delete document.body.dataset.mapFocus
         const heading = handles.tower.viewHeadingOf(code) ?? CesiumMath.toRadians(40)
+        // A basement space is looked at more steeply, down through the faded ground.
+        const below = Cartographic.fromCartesian(sphere.center).height < handles.groundHeight
         handles.viewer.camera.flyToBoundingSphere(sphere, {
-          offset: new HeadingPitchRange(heading, CesiumMath.toRadians(-20), Math.max(72, sphere.radius * 4)),
+          offset: new HeadingPitchRange(heading, CesiumMath.toRadians(below ? -38 : -20), Math.max(below ? 70 : 72, sphere.radius * 4)),
           duration: window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? 0 : 1.6,
           complete: () => handles.whenLoaded().then(() => (document.body.dataset.mapFocus = code)),
         })
@@ -309,6 +347,12 @@ export function CesiumMap(props: Props) {
     let stale = false
     delete document.body.dataset.mapView
     handles.plotsLayer.showLabels(view === '2d')
+    const under = view === 'under'
+    handles.ground.setUnderground(under)
+    handles.tower.setUnderground(under)
+    handles.networks.setVisible(under)
+    handles.plotsLayer.setUnderground(under)
+    handles.setBuildingsUnderground(under)
     goTo(handles.viewer, view, handles.groundHeight, true, frameState.current.exploded)
       .then(() => handles.whenLoaded())
       .then(() => {
@@ -322,16 +366,36 @@ export function CesiumMap(props: Props) {
   return <div ref={containerRef} className={s.map} />
 }
 
-/** Cuts away the real OpenStreetMap building on the tower plot, so Tower 1 stands in its place. */
-function hideRealBuildingOnTowerPlot(viewer: Viewer, buildings: Cesium3DTileset) {
+/**
+ * Cuts away the real OpenStreetMap building on the tower plot, so Tower 1 stands in its place.
+ * Returns false when clipping is not supported and the building has to be hidden by style instead.
+ */
+function hideRealBuildingOnTowerPlot(viewer: Viewer, buildings: Cesium3DTileset): boolean {
   if (ClippingPolygonCollection.isSupported(viewer.scene)) {
     buildings.clippingPolygons = new ClippingPolygonCollection({
       polygons: [new ClippingPolygon({ positions: Cartesian3.fromDegreesArray(towerPlot.polygon.flat()) })],
     })
-  } else if (towerPlot.osmBuildingId) {
-    buildings.style = new Cesium3DTileStyle({
-      color: `color('${COLOURS.contextBuildings}')`,
-      show: `\${elementId} !== ${towerPlot.osmBuildingId}`,
-    })
+    return true
   }
+  buildings.style = buildingStyle(false, true)
+  return false
+}
+
+/**
+ * Soft off-white study-model buildings. In the underground view the buildings standing on the faded
+ * ground are hidden, so nothing stands on thin air; the rest of the city stays as it is.
+ */
+function buildingStyle(underground: boolean, hideTowerPlotBuilding: boolean) {
+  const conditions: string[] = []
+  if (hideTowerPlotBuilding && towerPlot.osmBuildingId) conditions.push(`\${elementId} !== ${towerPlot.osmBuildingId}`)
+  if (underground) {
+    const [w, s, e, n] = fadedArea()
+    const lon = "${feature['cesium#longitude']}"
+    const lat = "${feature['cesium#latitude']}"
+    conditions.push(`(${lon} < ${w} || ${lon} > ${e} || ${lat} < ${s} || ${lat} > ${n})`)
+  }
+  return new Cesium3DTileStyle({
+    color: `color('${COLOURS.contextBuildings}')`,
+    ...(conditions.length ? { show: conditions.join(' && ') } : {}),
+  })
 }

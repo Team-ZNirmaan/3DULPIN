@@ -35,6 +35,9 @@ export const en = {
     legend: 'Legend',
     plotBoundary: 'Plot boundary',
     unregisteredBuilding: 'Building without 3D-ULPINs',
+    viewUnder: 'Underground',
+    rightOfUser: 'Metro right of user',
+    lines: 'Metro tunnel and water main',
   },
   plot: {
     title: 'CTS {{cts}}',
@@ -52,6 +55,7 @@ export const en = {
     notIssued: '3D-ULPINs have not been issued for Tower 1 yet.',
     register: 'Register this plot',
     back: 'All plots',
+    rouNote: 'Hatched on the map: the ground above the metro tunnel, where the metro rail authority holds a right of user.',
   },
   details: {
     close: 'Close',
@@ -67,6 +71,11 @@ export const en = {
     allottedTo: 'Allotted to',
     rights: 'Rights',
     openCard: 'Open property card',
+    depth: 'Depth below ground',
+    depthValue: '{{from}} m to {{to}} m below ground',
+    diameter: 'Diameter',
+    length: 'Length on this map',
+    runsUnder: 'Runs under',
   },
   levels: {
     B2: 'Basement 2',

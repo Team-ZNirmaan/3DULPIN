@@ -3,6 +3,7 @@ import {
   Cartesian3,
   ClassificationType,
   Color,
+  ColorMaterialProperty,
   ConstantProperty,
   CustomDataSource,
   LabelStyle,
@@ -86,6 +87,14 @@ export function addPlots(viewer: Viewer, plots: Plot[], groundHeight: number) {
       const plot = plots.find((p) => p.cts === cts)
       selected.show = !!plot
       if (plot && selected.polyline) selected.polyline.positions = new ConstantProperty(ring(plot))
+    },
+    /** In the underground view the plot fills are thinner, so they do not wash over the basements below. */
+    setUnderground(underground: boolean) {
+      for (const p of plots) {
+        const fill = source.entities.getById(`plot-fill-${p.cts}`)
+        const colour = p.hasTower ? COLOURS.towerPlotFill() : COLOURS.plotFill()
+        if (fill?.polygon) fill.polygon.material = new ColorMaterialProperty(underground ? colour.withAlpha(colour.alpha * 0.35) : colour)
+      }
     },
     /** Plot numbers are shown in the parcel map and hidden in the 3D view, where the tower is the focus. */
     showLabels(show: boolean) {

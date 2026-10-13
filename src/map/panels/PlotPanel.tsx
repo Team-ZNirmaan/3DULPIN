@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { CodeChip } from '../../components/CodeChip'
 import { SITE, spaces, underground, type Plot, type Space } from '../../data'
 import { LEVELS } from '../../data/tower'
-import { levelName, num, spaceName } from '../../lib/format'
+import { depthRange, levelName, num, spaceName } from '../../lib/format'
 import s from './Panels.module.css'
 
 type Props = {
@@ -43,20 +43,48 @@ export function PlotPanel({ plot, towerRegistered, selectedCode, onSelect, onBac
         <dd className={s.mono}>{plot.ulpin}</dd>
         <dt>{t('plot.area')}</dt>
         <dd>{num(lang, plot.areaM2, 0)} m²</dd>
-        <dt>{t('plot.restrictions')}</dt>
-        <dd>
-          {plot.restrictions.length === 0
-            ? t('plot.noRestrictions')
-            : plot.restrictions.map((r) => {
-                const seg = underground.find((u) => u.code === r.segmentCode)
-                return (
-                  <span key={r.segmentCode} className={s.restriction}>
-                    {t(`rights.${r.kind}`)}: {seg ? t(`underground.${seg.key}`) : r.segmentCode}
-                  </span>
-                )
-              })}
-        </dd>
+        {plot.restrictions.length === 0 && (
+          <>
+            <dt>{t('plot.restrictions')}</dt>
+            <dd>{t('plot.noRestrictions')}</dd>
+          </>
+        )}
       </dl>
+
+      {plot.restrictions.length > 0 && (
+        <>
+          <h3 className={s.subhead}>{t('plot.restrictions')}</h3>
+          <div className={s.restrictions}>
+            {plot.restrictions.map((r) => {
+              const line = underground.find((u) => u.code === r.segmentCode)
+              if (!line) return null
+              return (
+                <button
+                  key={r.segmentCode}
+                  type="button"
+                  className={r.segmentCode === selectedCode ? `${s.restriction} ${s.rowActive}` : s.restriction}
+                  onClick={() => onSelect(r.segmentCode)}
+                >
+                  <span className={s.restrictionName}>
+                    <span className={s.swatch} style={{ background: 'var(--type-g)' }} />
+                    {t(`underground.${line.key}`)}
+                  </span>
+                  <span className={s.restrictionMeta}>
+                    {t(`rights.${r.kind}`)}, {r.holder}
+                  </span>
+                  <span className={s.restrictionMeta}>{depthRange(t, lang, line)}</span>
+                </button>
+              )
+            })}
+          </div>
+          {plot.restrictions.some((r) => r.kind === 'right-of-user') && (
+            <p className={s.rouNote}>
+              <span className={s.hatchSwatch} aria-hidden="true" />
+              {t('plot.rouNote')}
+            </p>
+          )}
+        </>
+      )}
 
       {plot.hasTower && !towerRegistered && (
         <div className={s.notice}>

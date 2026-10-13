@@ -49,6 +49,14 @@
   border-radius: 3px;
 }
 
+.hatchSwatch {
+  width: 16px;
+  height: 12px;
+  border: 1px solid var(--type-g);
+  border-radius: 3px;
+  background: repeating-linear-gradient(-45deg, var(--type-g) 0 1.5px, transparent 1.5px 4px);
+}
+
 .lineSwatch {
   width: 16px;
   height: 0;

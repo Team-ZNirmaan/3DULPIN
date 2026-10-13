@@ -1,7 +1,7 @@
 import type { TFunction } from 'i18next'
 import type { Level } from './ulpin'
-import { toMsl } from '../data/geo'
-import type { Space } from '../data'
+import { lonLatToEnu, toMsl } from '../data/geo'
+import type { Space, UndergroundAsset } from '../data'
 
 // Shared wording for levels, numbers and heights, so every screen says them the same way.
 
@@ -29,3 +29,14 @@ export function heightRange(t: TFunction, lang: string, space: Pick<Space, 'zBot
 }
 
 export const spaceName = (t: TFunction, s: Pick<Space, 'kind' | 'number'>) => t(`space.${s.kind}`, { number: s.number })
+
+/** How deep an underground line runs: from its crown to its invert, in metres below ground. */
+export function depthRange(t: TFunction, lang: string, line: Pick<UndergroundAsset, 'axisDepthM' | 'radiusM'>): string {
+  return t('details.depthValue', { from: num(lang, line.axisDepthM - line.radiusM, 1), to: num(lang, line.axisDepthM + line.radiusM, 1) })
+}
+
+/** Length of an underground line as drawn on the map, metres. */
+export function lineLength(line: Pick<UndergroundAsset, 'line'>): number {
+  const pts = line.line.map(lonLatToEnu)
+  return pts.slice(1).reduce((sum, b, i) => sum + Math.hypot(b[0] - pts[i][0], b[1] - pts[i][1]), 0)
+}
