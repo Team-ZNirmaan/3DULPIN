@@ -1,0 +1,574 @@
+/* Register a building */
+
+/* ---------- stepper ---------- */
+.stepper {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.stepItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0 12px;
+  border-bottom: 2px solid var(--line);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--faint);
+}
+
+.stepNumber {
+  display: inline-grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  flex: none;
+  border: 1.5px solid currentColor;
+  border-radius: 50%;
+  font-size: 12.5px;
+  font-weight: 700;
+}
+
+.stepCurrent {
+  border-bottom-color: var(--accent);
+  color: var(--ink);
+}
+
+.stepCurrent .stepNumber {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #fff;
+}
+
+.stepDone {
+  border-bottom-color: var(--success);
+  color: var(--success);
+}
+
+.stepDone .stepNumber {
+  border-color: var(--success);
+  background: var(--success-soft);
+}
+
+.stepBody {
+  margin-top: 24px;
+}
+
+/* ---------- cards and buttons ---------- */
+.card {
+  min-width: 0;
+  margin: 0;
+  padding: 24px 26px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+}
+
+.cardHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.cardTitle {
+  padding: 0;
+  font-family: var(--font-serif);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.cardText {
+  margin-top: 6px;
+  font-size: 14.5px;
+  color: var(--muted);
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 22px;
+}
+
+.primary,
+.secondary,
+.quiet {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 14.5px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color var(--t-fast) var(--ease),
+    border-color var(--t-fast) var(--ease);
+}
+
+.primary {
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: #fff;
+}
+
+.primary:hover {
+  background: #a04a16;
+}
+
+.secondary {
+  border: 1px solid var(--line-strong);
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.secondary:hover {
+  border-color: var(--ink-2);
+}
+
+.quiet {
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--muted);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.quiet:hover {
+  color: var(--ink);
+}
+
+.primary:disabled,
+.secondary:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.primary:disabled:hover {
+  background: var(--accent);
+}
+
+/* ---------- step 1: plot ---------- */
+.plotStep {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  align-items: start;
+  gap: 20px;
+}
+
+.plotList {
+  display: grid;
+  gap: 4px;
+  margin: 16px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.plotRow {
+  display: grid;
+  grid-template-columns: auto 90px 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 10px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.plotRow:hover {
+  background: rgb(11 31 58 / 4%);
+}
+
+.plotRow input {
+  accent-color: var(--accent);
+}
+
+.plotRowOn,
+.plotRowOn:hover {
+  border-color: rgb(184 86 27 / 45%);
+  background: var(--accent-soft);
+}
+
+.plotRowDisabled {
+  color: var(--faint);
+  cursor: default;
+}
+
+.plotRowDisabled:hover {
+  background: transparent;
+}
+
+.plotCts {
+  font-weight: 600;
+}
+
+.plotUlpin {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+}
+
+.plotReady,
+.plotNone {
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+
+.plotReady {
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: var(--success-soft);
+  font-weight: 600;
+  color: var(--success);
+}
+
+.confirm {
+  position: sticky;
+  top: 24px;
+}
+
+.place {
+  margin-top: 4px;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: 130px 1fr;
+  gap: 10px 14px;
+  margin: 18px 0 0;
+  font-size: 14px;
+}
+
+.facts dt {
+  padding-top: 2px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.facts dd {
+  margin: 0;
+  color: var(--ink);
+}
+
+.mono {
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+
+.subtle,
+.block {
+  display: block;
+}
+
+.subtle {
+  margin-top: 2px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.empty {
+  font-size: 14.5px;
+  color: var(--muted);
+}
+
+/* ---------- step 2: data ---------- */
+.slots {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 20px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.slot {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 16px;
+  border: 1px dashed var(--line-strong);
+  border-radius: 10px;
+  background: var(--canvas);
+}
+
+.slotDone {
+  border-style: solid;
+  border-color: rgb(15 123 79 / 35%);
+  background: var(--success-soft);
+}
+
+.slotHead {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.slotTick {
+  display: inline-grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  flex: none;
+  border: 1.5px solid var(--line-strong);
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.slotDone .slotTick {
+  border-color: var(--success);
+  background: var(--success);
+}
+
+.slotName {
+  font-family: var(--font-sans);
+  font-size: 14.5px;
+  font-weight: 600;
+}
+
+.slotDesc {
+  flex: 1;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.slotButton {
+  align-self: flex-start;
+  margin-top: 4px;
+  padding: 6px 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: 7px;
+  background: var(--surface);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.slotButton:hover {
+  border-color: var(--ink-2);
+}
+
+.slotFile {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 2px 10px;
+  margin-top: 4px;
+  font-size: 12.5px;
+}
+
+.fileName {
+  overflow-wrap: anywhere;
+  font-family: var(--font-mono);
+  color: var(--ink);
+}
+
+.fileMeta {
+  color: var(--success);
+  font-weight: 600;
+}
+
+/* ---------- step 3: generate ---------- */
+.readyList {
+  display: grid;
+  gap: 4px;
+  margin: 14px 0 0;
+  padding-left: 18px;
+  font-size: 14.5px;
+}
+
+.progress {
+  height: 8px;
+  margin-top: 22px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--line);
+}
+
+.progressBar {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent);
+}
+
+.progressText {
+  margin-top: 10px;
+  font-family: var(--font-mono);
+  font-size: 13.5px;
+  color: var(--muted);
+}
+
+/* ---------- step 4: codes ---------- */
+.result {
+  display: grid;
+  gap: 18px;
+}
+
+.resultHead {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: start;
+  gap: 18px;
+}
+
+.resultTick {
+  display: inline-grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--success-soft);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--success);
+}
+
+.resultText {
+  min-width: 0;
+}
+
+.resultActions {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+}
+
+.counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.counts li {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--canvas);
+  font-size: 13px;
+}
+
+.counts b {
+  font-family: var(--font-mono);
+  font-weight: 600;
+}
+
+.swatch {
+  display: inline-block;
+  width: 11px;
+  height: 11px;
+  flex: none;
+  border: 1px solid rgb(11 31 58 / 30%);
+  border-radius: 3px;
+}
+
+.group {
+  padding: 18px 22px 20px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.groupBelow {
+  background: var(--canvas);
+}
+
+.groupHead {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-family: var(--font-sans);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.groupCount {
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--canvas);
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink-2);
+}
+
+.chips {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 8px 14px;
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.chipLink {
+  display: grid;
+  gap: 3px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  text-decoration: none;
+}
+
+.chipLink:hover {
+  background: rgb(11 31 58 / 4%);
+}
+
+.chipName {
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+@media (max-width: 900px) {
+  .plotStep {
+    grid-template-columns: 1fr;
+  }
+
+  .slots {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .resultHead {
+    grid-template-columns: auto 1fr;
+  }
+
+  .resultActions {
+    grid-column: 1 / -1;
+    flex-direction: row;
+  }
+
+  .pair {
+    grid-template-columns: 1fr;
+  }
+}

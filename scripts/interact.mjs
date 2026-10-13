@@ -30,10 +30,25 @@ async function open(browser, route, { registered = true, lang = 'en', size = { w
   await page.waitForFunction(() => ['ready', 'error'].includes(document.body.dataset.mapStatus ?? ''), null, { timeout: 240000 })
   return page
 }
-const shot = async (page, name) => {
+const shot = async (page, name, fullPage = false) => {
   await wait(800)
-  await page.screenshot({ path: `${OUT}/interact-${name}.png` })
+  await page.screenshot({ path: `${OUT}/interact-${name}.png`, fullPage })
   console.log(`saved ${OUT}/interact-${name}.png`)
+}
+/** A screen without the map: no waiting for the 3D city. */
+async function openPage(browser, route, { registered = false, lang = 'en', size = { width: 1920, height: 1080 } } = {}) {
+  const page = await browser.newPage({ viewport: size })
+  page.on('pageerror', (e) => problems.push(`${route} pageerror: ${e.message}`))
+  page.on('console', (m) => m.type() === 'error' && problems.push(`${route} console: ${m.text()}`))
+  await page.addInitScript(
+    ([l, r]) => {
+      localStorage.setItem('znirmaan.lang', l)
+      localStorage.setItem('znirmaan.demo.v1', JSON.stringify({ towerRegistered: r }))
+    },
+    [lang, registered],
+  )
+  await page.goto(BASE + route, { waitUntil: 'load', timeout: 60000 })
+  return page
 }
 const check = (ok, what) => {
   console.log(`${ok ? 'ok  ' : 'FAIL'} ${what}`)
@@ -51,8 +66,45 @@ try {
   }
   const browser = await chromium.launch({ args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] })
 
+  // R. Register a building: plot, survey data, generate, codes; then the map, and Reset demo.
+  let page = await openPage(browser, '#/register')
+  check((await page.getByRole('radio', { name: /CTS 1181/ }).isDisabled()) === true, 'plots without building data cannot be picked')
+  await page.getByRole('radio', { name: /CTS 1177/ }).check()
+  await shot(page, 'r1-plot')
+  await page.getByRole('button', { name: 'Continue' }).click()
+  check((await page.getByRole('button', { name: 'Continue' }).isDisabled()) === true, 'Continue waits for all six data sources')
+  await page.getByRole('button', { name: 'Use sample file: Drone imagery' }).click()
+  await shot(page, 'r2-data-one')
+  await page.getByRole('button', { name: 'Use all sample files' }).click()
+  await shot(page, 'r2-data-all')
+  await page.getByRole('button', { name: 'Continue' }).click()
+  await shot(page, 'r3-ready')
+  await page.getByRole('button', { name: 'Generate 3D-ULPINs' }).click()
+  await wait(900)
+  await page.screenshot({ path: `${OUT}/interact-r3-progress.png` })
+  await page.locator('#result-title').waitFor({ timeout: 20000 })
+  check((await page.locator('#result-title').innerText()) === '88 3D-ULPINs issued', 'Generate issues 88 3D-ULPINs')
+  check((await page.locator('a[href^="#/map?code="]').count()) === 91, 'every issued code (and the 3 lines below the plot) is listed')
+  check(await page.evaluate(() => JSON.parse(localStorage.getItem('znirmaan.demo.v1')).towerRegistered === true), 'registering is kept in local storage')
+  await shot(page, 'r4-codes', true)
+  await page.getByRole('link', { name: 'View in 3D' }).click()
+  await page.waitForFunction(() => document.body.dataset.mapView === '3d', null, { timeout: 240000 })
+  check((await page.getByRole('heading', { name: '3D-ULPINs of the plot' }).count()) === 1, 'the map shows the new codes on CTS 1177')
+  await shot(page, 'r5-map-after')
+  await page.getByRole('link', { name: 'Register a building' }).click()
+  check((await page.locator('#result-title').innerText()) === 'CTS 1177 already has 88 3D-ULPINs', 'Register shows the codes once the tower is registered')
+  await page.getByRole('button', { name: 'Reset demo' }).click()
+  check((await page.getByRole('radio', { name: /CTS 1177/ }).count()) === 1, 'Reset demo goes back to step 1')
+  check(await page.evaluate(() => JSON.parse(localStorage.getItem('znirmaan.demo.v1')).towerRegistered === false), 'Reset demo is kept in local storage')
+  await page.getByRole('link', { name: '3D Bhu-Naksha' }).click()
+  await page.waitForFunction(() => document.body.dataset.mapStatus === 'ready', null, { timeout: 240000 })
+  await page.getByRole('button', { name: /Tower 1 on CTS 1177/ }).click()
+  await page.getByRole('link', { name: 'Register this plot' }).click()
+  check((await page.getByRole('radio', { name: /CTS 1177/ }).isChecked()) === true, '"Register this plot" arrives with CTS 1177 picked')
+  await page.close()
+
   // 1. A shared link to flat 502 opens in 3D, flies to it and selects it.
-  let page = await open(browser, `#/map?code=${FLAT_502}`)
+  page = await open(browser, `#/map?code=${FLAT_502}`)
   await page.waitForFunction((c) => document.body.dataset.mapFocus === c, FLAT_502, { timeout: 240000 })
   check((await page.locator('#space-title').innerText()) === 'Flat 502', 'deep link selects Flat 502')
   check((await page.locator('#plot-title').innerText()) === 'CTS 1177', 'deep link opens the plot panel for CTS 1177')

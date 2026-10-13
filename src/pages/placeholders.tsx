@@ -3,21 +3,12 @@ import { useTranslation } from 'react-i18next'
 import { BeingBuilt, PageLayout } from '../components/PageLayout'
 import s from './placeholders.module.css'
 
-// These screens are filled in by later chunks (Register: chunk 5, Search and Card: chunk 6).
+// These screens are filled in by chunk 6 (Search and Card).
 
 export function SearchPage() {
   const { t } = useTranslation()
   return (
     <PageLayout title={t('search.title')} intro={t('search.intro')}>
-      <BeingBuilt />
-    </PageLayout>
-  )
-}
-
-export function RegisterPage() {
-  const { t } = useTranslation()
-  return (
-    <PageLayout title={t('register.title')} intro={t('register.intro')}>
       <BeingBuilt />
     </PageLayout>
   )

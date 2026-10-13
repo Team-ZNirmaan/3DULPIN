@@ -2,7 +2,8 @@ import { HashRouter, Navigate, Route, Routes } from 'react-router'
 import { AppShell } from './components/AppShell'
 import { MapPage } from './pages/MapPage'
 import { DebugPage } from './pages/debug/DebugPage'
-import { CardPage, NotFoundPage, RegisterPage, SearchPage } from './pages/placeholders'
+import { CardPage, NotFoundPage, SearchPage } from './pages/placeholders'
+import { RegisterPage } from './pages/register/RegisterPage'
 
 // Hash routing so the site works on any static host without server rewrites.
 export function App() {

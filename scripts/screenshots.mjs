@@ -22,7 +22,9 @@ const SHOTS = [
   { name: 'map-3d', route: '#/map?view=3d', map: '3d', registered: true, langs: ['hi'], sizes: [SIZES[0]] },
   // Other screens
   { name: 'search', route: '#/search', langs: ['en', 'hi'], sizes: [SIZES[0]] },
-  { name: 'register', route: '#/register', langs: ['en'], sizes: [SIZES[0]] },
+  { name: 'register', route: '#/register', langs: ['en', 'hi'], sizes: [SIZES[0]] },
+  { name: 'register-plot', route: '#/register?plot=1177', langs: ['en', 'hi'], sizes: SIZES },
+  { name: 'register-done', route: '#/register', registered: true, langs: ['en', 'hi'], sizes: SIZES },
   { name: 'debug', route: '#/debug', langs: ['en'], sizes: [SIZES[1]], fullPage: true },
 ]
 
