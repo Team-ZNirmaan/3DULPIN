@@ -4,11 +4,11 @@ import { num } from '../../lib/format'
 import s from './Panels.module.css'
 
 /** Rights in a 3D space, each with its holder and the legal document it comes from. */
-export function RightsList({ rights }: { rights: Right[] }) {
+export function RightsList({ rights, heading = true }: { rights: Right[]; heading?: boolean }) {
   const { t, i18n } = useTranslation()
   return (
     <>
-      <h3 className={s.subhead}>{t('details.rights')}</h3>
+      {heading && <h3 className={s.subhead}>{t('details.rights')}</h3>}
       <ul className={s.rights}>
         {rights.map((r, i) => (
           <li key={i}>

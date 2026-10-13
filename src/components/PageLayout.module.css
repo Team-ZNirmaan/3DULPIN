@@ -35,23 +35,3 @@
 .body {
   margin-top: 32px;
 }
-
-.card {
-  padding: 28px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: var(--surface);
-  box-shadow: var(--shadow-card);
-}
-
-.wip {
-  display: inline-flex;
-  align-items: center;
-  padding: 5px 12px;
-  border: 1px dashed rgb(184 86 27 / 45%);
-  border-radius: 999px;
-  background: var(--accent-soft);
-  font-size: 13px;
-  font-weight: 500;
-  color: #7a3a12;
-}

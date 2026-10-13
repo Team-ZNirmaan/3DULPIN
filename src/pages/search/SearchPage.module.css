@@ -1,0 +1,411 @@
+/* Search land records */
+
+.form {
+  padding: 22px 24px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+}
+
+.label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.box {
+  display: flex;
+  gap: 10px;
+}
+
+.input {
+  flex: 1;
+  min-width: 0;
+  padding: 13px 16px;
+  border: 1px solid var(--line-strong);
+  border-radius: 9px;
+  background: var(--canvas);
+  font-family: var(--font-mono);
+  font-size: 17px;
+  letter-spacing: 0.02em;
+  color: var(--ink);
+}
+
+.input:focus {
+  border-color: var(--ink-2);
+  outline: 3px solid rgb(184 86 27 / 20%);
+  outline-offset: 0;
+  background: var(--surface);
+}
+
+.input::placeholder {
+  font-family: var(--font-sans);
+  letter-spacing: 0;
+  color: var(--faint);
+}
+
+.submit,
+.primary,
+.secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 14.5px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.submit,
+.primary {
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: #fff;
+}
+
+.submit {
+  padding: 0 26px;
+  font-size: 15.5px;
+}
+
+.submit:hover,
+.primary:hover {
+  background: #a04a16;
+}
+
+.secondary {
+  border: 1px solid var(--line-strong);
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.secondary:hover {
+  border-color: var(--ink-2);
+}
+
+.examples {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+  font-size: 13.5px;
+  color: var(--muted);
+}
+
+.examples button {
+  padding: 4px 11px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--canvas);
+  font: inherit;
+  font-size: 13px;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.examples button:hover {
+  border-color: var(--line-strong);
+  background: var(--surface);
+}
+
+/* ---------- results ---------- */
+.result {
+  display: grid;
+  gap: 16px;
+  margin-top: 22px;
+}
+
+.card {
+  padding: 22px 24px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+}
+
+.notice {
+  border-color: rgb(184 86 27 / 30%);
+  background: #fffaf6;
+}
+
+.error {
+  border-color: rgb(180 35 24 / 35%);
+  background: #fffafa;
+}
+
+.cardHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.title {
+  margin-top: 4px;
+  font-size: 22px;
+}
+
+.place {
+  margin-top: 4px;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.text {
+  margin-top: 8px;
+  font-size: 14.5px;
+  color: var(--ink-2);
+}
+
+.hint,
+.muted {
+  font-size: 13.5px;
+  color: var(--muted);
+}
+
+.hint {
+  margin-top: 6px;
+}
+
+.notice .primary,
+.noticeBox .primary {
+  margin-top: 12px;
+}
+
+.noticeBox {
+  margin-top: 16px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: var(--accent-soft);
+  font-size: 14px;
+  color: #7a3a12;
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: 170px 1fr;
+  gap: 10px 16px;
+  margin: 18px 0 0;
+  font-size: 14.5px;
+}
+
+.facts dt {
+  padding-top: 2px;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.facts dd {
+  margin: 0;
+}
+
+.facts a,
+.lines a {
+  color: var(--accent);
+  text-underline-offset: 2px;
+}
+
+.mono {
+  font-family: var(--font-mono);
+}
+
+.block {
+  display: block;
+}
+
+.swatch {
+  display: inline-block;
+  width: 11px;
+  height: 11px;
+  flex: none;
+  border: 1px solid rgb(11 31 58 / 30%);
+  border-radius: 3px;
+}
+
+.subhead {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 20px 0 10px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.count {
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+/* The tower's spaces, floor by floor */
+.levels {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 14px 22px;
+}
+
+.levelName {
+  margin-bottom: 4px;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+.levelSpaces {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.levelSpaces a {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 6px;
+  border-radius: 5px;
+  font-size: 13.5px;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.levelSpaces a:hover {
+  background: rgb(11 31 58 / 5%);
+}
+
+.lines {
+  display: grid;
+  gap: 8px;
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lines li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* A typed code with its wrong characters marked */
+.marked {
+  margin-top: 14px;
+  padding: 12px 14px;
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  font-family: var(--font-mono);
+  font-size: 20px;
+  letter-spacing: 0.06em;
+  white-space: pre;
+  color: var(--ink);
+}
+
+.wrong {
+  border-radius: 3px;
+  background: var(--error-soft);
+  box-shadow: inset 0 -3px 0 var(--error);
+  color: var(--error);
+  font-weight: 700;
+}
+
+.missing {
+  color: transparent;
+}
+
+.didYouMean {
+  margin-top: 16px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.suggestions {
+  display: grid;
+  gap: 8px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.suggestions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.suggestions button:hover {
+  border-color: var(--success);
+}
+
+.link {
+  margin-left: 4px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: var(--accent);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.explainCard {
+  padding: 18px 24px 22px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--canvas);
+}
+
+.explainCard .subhead {
+  margin: 0 0 16px;
+  padding: 0;
+  border: 0;
+}

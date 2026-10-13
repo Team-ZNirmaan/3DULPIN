@@ -24,13 +24,3 @@ export function PageLayout({ title, intro, wide, children }: Props) {
     </div>
   )
 }
-
-export function BeingBuilt({ children }: { children?: ReactNode }) {
-  const { t } = useTranslation()
-  return (
-    <div className={s.card}>
-      <span className={s.wip}>{t('wip')}</span>
-      {children}
-    </div>
-  )
-}

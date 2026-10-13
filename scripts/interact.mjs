@@ -50,6 +50,15 @@ async function openPage(browser, route, { registered = false, lang = 'en', size 
   await page.goto(BASE + route, { waitUntil: 'load', timeout: 60000 })
   return page
 }
+/** Waits up to 10 s for something to appear on the page. */
+const has = async (locator) => {
+  try {
+    await locator.first().waitFor({ timeout: 10000 })
+    return true
+  } catch {
+    return false
+  }
+}
 const check = (ok, what) => {
   console.log(`${ok ? 'ok  ' : 'FAIL'} ${what}`)
   if (!ok) problems.push(what)
@@ -101,6 +110,55 @@ try {
   await page.getByRole('button', { name: /Tower 1 on CTS 1177/ }).click()
   await page.getByRole('link', { name: 'Register this plot' }).click()
   check((await page.getByRole('radio', { name: /CTS 1177/ }).isChecked()) === true, '"Register this plot" arrives with CTS 1177 picked')
+  await page.close()
+
+  // S. Search: a plot, a flat, a typo, a wrong shape, and the tower plot before registering.
+  page = await openPage(browser, '#/search', { registered: true })
+  await page.getByLabel('Plot number, ULPIN or 3D-ULPIN').fill('cts 1177')
+  await page.keyboard.press('Enter')
+  check(await has(page.getByRole('heading', { name: 'CTS 1177' })), 'search finds a plot by its CTS number')
+  check(await has(page.getByRole('link', { name: 'Flat 502' })), 'the plot result lists its 3D spaces')
+  await shot(page, 's1-plot')
+  await page.getByRole('button', { name: 'Flat 502' }).click()
+  check(await has(page.getByRole('heading', { name: 'Flat 502' })), 'search finds a flat by its 3D-ULPIN')
+  check(await has(page.getByRole('figure', { name: 'The parts of this 3D-ULPIN' })), 'the result explains the parts of the code')
+  await shot(page, 's2-flat')
+  await page.getByRole('button', { name: 'A 3D-ULPIN with a typing mistake' }).click()
+  check(await has(page.getByRole('heading', { name: 'This code has a typing mistake' })), 'a swapped pair of digits is caught')
+  check((await page.locator('[class*="wrong"]').count()) === 2, 'the two swapped characters are marked')
+  await shot(page, 's3-typo')
+  await page.locator('[class*="suggestions"] button').first().click()
+  check(await has(page.getByRole('heading', { name: 'Flat 502' })), '"Did you mean" opens the right code')
+  await page.getByLabel('Plot number, ULPIN or 3D-ULPIN').fill(FLAT_502.replace('-U', '-Q'))
+  await page.keyboard.press('Enter')
+  check(await has(page.getByRole('heading', { name: 'This is not a 3D-ULPIN' })), 'a code with the wrong shape is explained')
+  await shot(page, 's4-format')
+  await page.close()
+  page = await openPage(browser, '#/search?q=CTS%201177')
+  check(await has(page.getByText('No 3D-ULPINs issued yet')), 'before registering, the tower plot shows no codes issued')
+  check(await has(page.getByRole('link', { name: 'Register this plot' })), 'and links to Register')
+  await shot(page, 's5-unregistered')
+  await page.close()
+
+  // C. Property cards: a flat, its parking bay, the metro line; and a flat before registering.
+  page = await openPage(browser, `#/card/${FLAT_502}`, { registered: true, size: { width: 1440, height: 2000 } })
+  check(await has(page.getByRole('heading', { name: 'Flat 502' })), 'the card opens for flat 502')
+  check(await has(page.getByRole('img', { name: 'QR code that opens this card' })), 'the card has a QR code')
+  check(await has(page.getByRole('img', { name: /Drawing of Tower 1/ })), 'the card has the tower drawing')
+  await shot(page, 'c1-flat-502')
+  await page.locator('article').screenshot({ path: `${OUT}/interact-c1-flat-502-full.png` })
+  await page.getByRole('link', { name: /Allotted parking/ }).click()
+  check(await has(page.getByRole('heading', { name: /^Allotted parking/ })), 'the card links to the allotted parking card')
+  await page.locator('article').screenshot({ path: `${OUT}/interact-c2-bay-full.png` })
+  await page.locator('article a[href*="-G"]').first().click()
+  check(await has(page.getByRole('heading', { name: 'Metro tunnel, up line' })), 'the restriction links to the metro line card')
+  await page.locator('article').screenshot({ path: `${OUT}/interact-c3-metro-full.png` })
+  await page.close()
+  page = await openPage(browser, `#/card/${FLAT_502}`)
+  check(await has(page.getByRole('heading', { name: 'This 3D-ULPIN has not been issued yet' })), 'before registering, the card says the code is not issued')
+  await page.close()
+  page = await openPage(browser, `#/card/${FLAT_502}`, { registered: true, lang: 'hi', size: { width: 1366, height: 2000 } })
+  await page.locator('article').screenshot({ path: `${OUT}/interact-c4-flat-502-hi-full.png` })
   await page.close()
 
   // 1. A shared link to flat 502 opens in 3D, flies to it and selects it.
