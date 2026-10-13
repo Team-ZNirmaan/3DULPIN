@@ -1,0 +1,29 @@
+.toggle {
+  display: inline-flex;
+  padding: 2px;
+  border: 1px solid rgb(255 255 255 / 22%);
+  border-radius: 8px;
+}
+
+.option {
+  min-width: 38px;
+  padding: 3px 10px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgb(255 255 255 / 75%);
+  cursor: pointer;
+  transition: background-color var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
+}
+
+.option:hover {
+  color: #fff;
+}
+
+.active,
+.active:hover {
+  background: #fff;
+  color: var(--ink);
+}

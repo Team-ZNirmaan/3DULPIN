@@ -1,31 +1,29 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import tailwindcss from '@tailwindcss/vite'
 import { viteStaticCopy } from 'vite-plugin-static-copy'
-import { fileURLToPath, URL } from 'node:url'
 
-const cesiumSource = 'node_modules/cesium/Build/Cesium'
+// CesiumJS loads its workers, assets and widget styles at runtime from this folder.
+// This follows Cesium's own Vite recipe: copy the files and tell Cesium where they are.
 const cesiumBaseUrl = 'cesiumStatic'
 
 export default defineConfig({
-  base: './',
   define: {
-    CESIUM_BASE_URL: JSON.stringify(`./${cesiumBaseUrl}/`),
-  },
-  resolve: {
-    alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
+    CESIUM_BASE_URL: JSON.stringify(`./${cesiumBaseUrl}`),
   },
   plugins: [
     react(),
-    tailwindcss(),
     viteStaticCopy({
-      targets: ['ThirdParty', 'Workers', 'Assets', 'Widgets'].map((dir) => ({
-        src: `${cesiumSource}/${dir}`,
-        dest: cesiumBaseUrl,
-        rename: { stripBase: 4 },
-      })),
+      targets: [
+        {
+          src: 'node_modules/cesium/Build/Cesium/{Workers,ThirdParty,Assets,Widgets}/**/*',
+          dest: cesiumBaseUrl,
+          rename: { stripBase: 4 },
+        },
+      ],
     }),
   ],
+  // Relative base so the built site works from any folder or sub-path when you host it.
+  base: './',
   build: {
     chunkSizeWarningLimit: 6000,
   },

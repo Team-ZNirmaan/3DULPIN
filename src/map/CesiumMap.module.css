@@ -1,0 +1,15 @@
+.map {
+  position: absolute;
+  inset: 0;
+}
+
+/* Keep Cesium's required data credits, but make them quiet. */
+.map :global(.cesium-widget-credits) {
+  font-size: 10px;
+  opacity: 0.85;
+}
+
+.map :global(.cesium-viewer-bottom) {
+  left: 12px;
+  bottom: 6px;
+}

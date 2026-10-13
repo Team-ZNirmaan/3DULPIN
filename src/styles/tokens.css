@@ -1,0 +1,56 @@
+/* Design tokens for ZNirmaan Portal. Formal, calm, and consistent across every screen. */
+:root {
+  /* Brand */
+  --ink: #0b1f3a;
+  --ink-2: #1b3358;
+  --canvas: #f7f5f0;
+  --surface: #ffffff;
+  --line: #e4e1d8;
+  --line-strong: #d3cfc3;
+  --muted: #5b6472;
+  --faint: #8a919c;
+  --accent: #b8561b;
+  --accent-soft: #fbeee4;
+  --accent-on-ink: #e8a065;
+  --success: #0f7b4f;
+  --success-soft: #e3f3ea;
+  --error: #b42318;
+  --error-soft: #fdecea;
+
+  /* Space types (Okabe-Ito, colour-blind safe). Used on the map, legend, card and code chips. */
+  --type-s: #f0e442;
+  --type-b: #8a94a6;
+  --type-u: #0072b2;
+  --type-l: #e69f00;
+  --type-c: #009e73;
+  --type-p: #56b4e9;
+  --type-g: #cc79a7;
+
+  /* Typography */
+  --font-serif: 'Noto Serif', 'Noto Serif Devanagari', Georgia, serif;
+  --font-sans: 'Inter', 'Noto Sans Devanagari', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  /* Shape and depth */
+  --radius-sm: 6px;
+  --radius: 12px;
+  --shadow-panel: 0 1px 2px rgb(11 31 58 / 6%), 0 8px 24px rgb(11 31 58 / 10%);
+  --shadow-card: 0 1px 2px rgb(11 31 58 / 5%);
+  --glass: rgb(255 255 255 / 88%);
+
+  /* Layout */
+  --header-h: 64px;
+  --content-max: 1100px;
+
+  /* Motion */
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --t-fast: 140ms;
+  --t-panel: 200ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --t-fast: 0ms;
+    --t-panel: 0ms;
+  }
+}
