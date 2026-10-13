@@ -8,6 +8,10 @@
   margin: 0 auto;
 }
 
+.wide {
+  max-width: 1480px;
+}
+
 .eyebrow {
   font-size: 11.5px;
   font-weight: 600;

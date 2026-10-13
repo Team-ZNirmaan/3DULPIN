@@ -16,6 +16,7 @@ const SHOTS = [
   { name: 'search', route: '#/search', langs: ['en', 'hi'], sizes: [SIZES[0]] },
   { name: 'register', route: '#/register', langs: ['en', 'hi'], sizes: [SIZES[0]] },
   { name: 'card', route: '#/card/XX00XX0000XXXX-U1050027', langs: ['en'], sizes: [SIZES[0]] },
+  { name: 'debug', route: '#/debug', langs: ['en', 'hi'], sizes: [SIZES[1]], fullPage: true },
 ]
 
 mkdirSync(OUT, { recursive: true })
@@ -37,13 +38,16 @@ async function waitForServer() {
 const problems = []
 try {
   await waitForServer()
-  const browser = await chromium.launch({
+  // WebGL (software) for the 3D map; a plain browser for everything else, since the software
+  // renderer cannot capture pages taller than 8192 px.
+  const glBrowser = await chromium.launch({
     args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'],
   })
+  const plainBrowser = await chromium.launch()
   for (const shot of SHOTS) {
     for (const lang of shot.langs) {
       for (const size of shot.sizes) {
-        const page = await browser.newPage({ viewport: { width: size.w, height: size.h } })
+        const page = await (shot.map ? glBrowser : plainBrowser).newPage({ viewport: { width: size.w, height: size.h } })
         const label = `${shot.name}-${lang}-${size.w}`
         page.on('pageerror', (e) => problems.push(`${label} pageerror: ${e.message}`))
         page.on('console', (m) => m.type() === 'error' && problems.push(`${label} console: ${m.text()}`))
@@ -59,13 +63,19 @@ try {
           console.log(`${label}: map status = ${status}`)
           if (status !== 'ready') problems.push(`${label}: map status ${status}`)
         }
-        await page.screenshot({ path: `${OUT}/${label}.png` })
+        if (shot.fullPage) {
+          // The app scrolls inside <main>; for a full-page capture let the document scroll instead.
+          await page.addStyleTag({ content: 'html, body, #root, #root > div { height: auto !important } main { overflow: visible !important }' })
+          await page.waitForTimeout(300)
+        }
+        await page.screenshot({ path: `${OUT}/${label}.png`, fullPage: !!shot.fullPage })
         console.log(`saved ${OUT}/${label}.png`)
         await page.close()
       }
     }
   }
-  await browser.close()
+  await glBrowser.close()
+  await plainBrowser.close()
 } finally {
   stop()
 }

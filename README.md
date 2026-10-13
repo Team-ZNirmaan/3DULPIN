@@ -32,7 +32,16 @@ This is a prototype with demo data only: no backend, and no real owners or recor
 | `npm run typecheck` | TypeScript checks |
 | `npm run lint` | ESLint |
 | `npm test` | Unit tests |
+| `npm run data` | Rebuilds `src/data/site.generated.json` (plots and the metro alignment) from the saved OpenStreetMap extract in `scripts/osm/` |
 | `npm run shots` | Screenshots of every screen at 1366×768 and 1920×1080 in English and Hindi, saved to `screenshots/`. Run `npm run build` first. |
+
+## Demo data
+
+All data is fictional except the geography:
+- **Real:** plot shapes are drawn around real buildings near Shivaji Nagar metro station, and the metro tunnel follows the real Purple Line alignment. Both come from OpenStreetMap (© OpenStreetMap contributors, ODbL).
+- **Fictional:** owners, CTS numbers, ULPINs and documents.
+
+To check every code, area and right, open `#/debug` (a review page that is not in the menu).
 
 ## Stack
 
