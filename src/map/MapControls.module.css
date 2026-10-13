@@ -1,0 +1,90 @@
+/* Floating glass panels over the map. */
+.glass {
+  position: absolute;
+  border: 1px solid rgb(255 255 255 / 70%);
+  border-radius: var(--radius);
+  background: var(--glass);
+  backdrop-filter: blur(10px) saturate(1.2);
+  box-shadow: var(--shadow-panel);
+}
+
+/* Legend, bottom left (above Cesium's data credits) */
+.legend {
+  left: 16px;
+  bottom: 44px;
+  min-width: 200px;
+  padding: 12px 16px 14px;
+}
+
+.legendTitle {
+  margin-bottom: 8px;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.legendList {
+  display: grid;
+  gap: 7px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 13px;
+  color: var(--ink);
+}
+
+.legendList li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.swatch {
+  width: 16px;
+  height: 12px;
+  border: 1px solid rgb(11 31 58 / 35%);
+  border-radius: 3px;
+}
+
+.lineSwatch {
+  width: 16px;
+  height: 0;
+  border-top: 2.5px solid var(--ink);
+}
+
+/* View switch, bottom right */
+.toggle {
+  right: 16px;
+  bottom: 44px;
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+}
+
+.option {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 16px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink-2);
+  cursor: pointer;
+  transition: background-color var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
+}
+
+.option:hover {
+  background: rgb(11 31 58 / 6%);
+}
+
+.active,
+.active:hover {
+  background: var(--ink);
+  color: #fff;
+}

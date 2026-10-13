@@ -12,11 +12,16 @@ const SIZES = [
   { w: 1920, h: 1080 },
 ]
 const SHOTS = [
-  { name: 'map', route: '#/map', map: true, langs: ['en', 'hi'], sizes: SIZES },
+  // 3D Bhu-Naksha: parcel map, 3D view in both demo states, close-up, and Hindi
+  { name: 'map-2d', route: '#/map', map: '2d', registered: true, langs: ['en'], sizes: SIZES },
+  { name: 'map-3d', route: '#/map?view=3d', map: '3d', registered: true, langs: ['en'], sizes: SIZES },
+  { name: 'map-3d-unregistered', route: '#/map?view=3d', map: '3d', registered: false, langs: ['en'], sizes: [SIZES[1]] },
+  { name: 'map-close', route: '#/map?view=close', map: 'close', registered: true, langs: ['en'], sizes: [SIZES[1]] },
+  { name: 'map-3d', route: '#/map?view=3d', map: '3d', registered: true, langs: ['hi'], sizes: [SIZES[0]] },
+  // Other screens
   { name: 'search', route: '#/search', langs: ['en', 'hi'], sizes: [SIZES[0]] },
-  { name: 'register', route: '#/register', langs: ['en', 'hi'], sizes: [SIZES[0]] },
-  { name: 'card', route: '#/card/XX00XX0000XXXX-U1050027', langs: ['en'], sizes: [SIZES[0]] },
-  { name: 'debug', route: '#/debug', langs: ['en', 'hi'], sizes: [SIZES[1]], fullPage: true },
+  { name: 'register', route: '#/register', langs: ['en'], sizes: [SIZES[0]] },
+  { name: 'debug', route: '#/debug', langs: ['en'], sizes: [SIZES[1]], fullPage: true },
 ]
 
 mkdirSync(OUT, { recursive: true })
@@ -51,16 +56,23 @@ try {
         const label = `${shot.name}-${lang}-${size.w}`
         page.on('pageerror', (e) => problems.push(`${label} pageerror: ${e.message}`))
         page.on('console', (m) => m.type() === 'error' && problems.push(`${label} console: ${m.text()}`))
-        await page.addInitScript((l) => localStorage.setItem('znirmaan.lang', l), lang)
-        await page.goto(BASE + shot.route, { waitUntil: 'networkidle' })
+        await page.addInitScript(
+          ([l, registered]) => {
+            localStorage.setItem('znirmaan.lang', l)
+            localStorage.setItem('znirmaan.demo.v1', JSON.stringify({ towerRegistered: registered }))
+          },
+          [lang, shot.registered ?? false],
+        )
+        // The map streams tiles continuously, so never wait for the network to go quiet there.
+        await page.goto(BASE + shot.route, { waitUntil: shot.map ? 'load' : 'networkidle', timeout: 60000 })
         await page.evaluate(() => document.fonts.ready)
         if (shot.map) {
           await page
-            .waitForFunction(() => ['ready', 'error'].includes(document.body.dataset.mapStatus ?? ''), null, { timeout: 120000 })
-            .catch(() => problems.push(`${label}: map did not finish loading within 120 s`))
+            .waitForFunction((v) => document.body.dataset.mapStatus === 'error' || document.body.dataset.mapView === v, shot.map, { timeout: 240000 })
+            .catch(() => problems.push(`${label}: map did not finish loading within 240 s`))
           await page.waitForTimeout(1500)
-          const status = await page.evaluate(() => document.body.dataset.mapStatus)
-          console.log(`${label}: map status = ${status}`)
+          const { status, ground } = await page.evaluate(() => ({ status: document.body.dataset.mapStatus, ground: document.body.dataset.groundEllipsoidHeight }))
+          console.log(`${label}: map ${status}, ground ${ground} m above the ellipsoid`)
           if (status !== 'ready') problems.push(`${label}: map status ${status}`)
         }
         if (shot.fullPage) {

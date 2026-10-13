@@ -9,7 +9,8 @@ export const SITE = {
   frameAngleDeg: generated.towerFrameAngleDeg,
   /**
    * Ground floor level of the tower, metres above mean sea level.
-   * From SRTM 30 m elevation at the plot (558 m), to be confirmed against Cesium World Terrain in chunk 2.
+   * SRTM 30 m gives 558 m. Checked in chunk 2: Cesium World Terrain puts the plot at 485.64 m above the
+   * WGS84 ellipsoid, and the EGM2008 geoid there is -71.90 m, so 485.64 + 71.90 = 557.5 m. They agree.
    */
   groundLevelMsl: 558,
   state: 'Maharashtra',

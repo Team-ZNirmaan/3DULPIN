@@ -84,7 +84,7 @@ export function DebugPage() {
             </dd>
             <dt>Ground level</dt>
             <dd>
-              {SITE.groundLevelMsl} m above sea level (SRTM) <Verify />
+              {SITE.groundLevelMsl} m above sea level (SRTM, matches Cesium terrain with the EGM2008 geoid)
             </dd>
             <dt>Map data</dt>
             <dd>Plot shapes and metro alignment from {SITE.attribution}</dd>
